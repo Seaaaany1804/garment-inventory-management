@@ -39,6 +39,11 @@ if (!isset($_SESSION['role'])) {
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-white" href="../../pages/admin/inventory.php">
+                                    <i class="fas fa-boxes me-2"></i> Inventory
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-white" href="../../pages/admin/users.php">
                                     <i class="fas fa-users me-2"></i> Manage Users
                                 </a>

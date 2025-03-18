@@ -86,7 +86,7 @@ if (!isset($_SESSION['role'])) {
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/staff/inventory.php">
+                                <a class="nav-link text-white" href="/garmet/garment-inventory-management/pages/staff/inventory.php">
                                     <i class="fas fa-boxes me-2"></i> Manage Inventory
                                 </a>
                             </li>

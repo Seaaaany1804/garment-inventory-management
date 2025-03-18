@@ -59,18 +59,9 @@ if (!isset($_SESSION['role'])) {
                                     <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                                 </a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/sales/create_order.php">
-                                    <i class="fas fa-plus-circle me-2"></i> Create Order
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/sales/manage_orders.php">
-                                    <i class="fas fa-shopping-cart me-2"></i> Manage Orders
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/sales/view_products.php">
+                                <a class="nav-link text-white" href="/garment-inventory-management/pages/sales/inventory.php">
                                     <i class="fas fa-tshirt me-2"></i> View Products
                                 </a>
                             </li>
@@ -81,12 +72,12 @@ if (!isset($_SESSION['role'])) {
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="/garmet/garment-inventory-management/pages/staff/inventory.php">
+                                <a class="nav-link text-white" href="/garment-inventory-management/pages/staff/manageinventory.php">
                                     <i class="fas fa-boxes me-2"></i> Manage Inventory
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/staff/process_orders.php">
+                                <a class="nav-link text-white" href="/garment-inventory-management/pages/staff/processorders.php">
                                     <i class="fas fa-tasks me-2"></i> Process Orders
                                 </a>
                             </li>

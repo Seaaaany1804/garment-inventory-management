@@ -44,16 +44,6 @@ if (!isset($_SESSION['role'])) {
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/admin/users.php">
-                                    <i class="fas fa-users me-2"></i> Manage Users
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/admin/products.php">
-                                    <i class="fas fa-tshirt me-2"></i> Manage Products
-                                </a>
-                            </li>
-                            <li class="nav-item">
                                 <a class="nav-link text-white" href="../../pages/admin/orders.php">
                                     <i class="fas fa-shopping-cart me-2"></i> View Orders
                                 </a>

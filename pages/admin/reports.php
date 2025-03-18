@@ -4,267 +4,317 @@ checkAuth('admin');
 
 $page_title = "Reports & Analytics";
 include '../../layouts/header.php';
+
+// Default to current month
+$timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
 ?>
 
-<div style="margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <select class="select-control" style="min-width: 150px;">
-            <option value="this_month">This Month</option>
-            <option value="last_month">Last Month</option>
-            <option value="last_3_months">Last 3 Months</option>
-            <option value="this_year">This Year</option>
-            <option value="custom">Custom Range</option>
-        </select>
-        <div style="display: none;" id="custom-date-range">
-            <input type="date" class="form-control" style="min-width: 150px;">
-            <span style="margin: 0 0.5rem; align-self: center;">to</span>
-            <input type="date" class="form-control" style="min-width: 150px;">
+<div style="display: flex; flex-direction: column; min-height: calc(100vh - 80px);">
+    <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0;"><?php echo $page_title; ?></h1>
+        
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <select id="time-range-selector" class="select-control" style="min-width: 150px; border-radius: 8px; border: none; background-color: rgba(255,255,255,0.1);">
+                <option value="this_month" <?php echo $timeRange == 'this_month' ? 'selected' : ''; ?>>This Month</option>
+                <option value="last_month" <?php echo $timeRange == 'last_month' ? 'selected' : ''; ?>>Last Month</option>
+                <option value="last_3_months" <?php echo $timeRange == 'last_3_months' ? 'selected' : ''; ?>>Last 3 Months</option>
+                <option value="this_year" <?php echo $timeRange == 'this_year' ? 'selected' : ''; ?>>This Year</option>
+                <option value="custom" <?php echo $timeRange == 'custom' ? 'selected' : ''; ?>>Custom Range</option>
+            </select>
+            <div id="custom-date-range" style="display: <?php echo $timeRange == 'custom' ? 'flex' : 'none'; ?>; gap: 0.5rem; align-items: center;">
+                <input type="date" id="date-from" class="form-control" style="min-width: 150px; border-radius: 8px; border: none; background-color: rgba(255,255,255,0.1);">
+                <span style="margin: 0 0.5rem; align-self: center;">to</span>
+                <input type="date" id="date-to" class="form-control" style="min-width: 150px; border-radius: 8px; border: none; background-color: rgba(255,255,255,0.1);">
+                <button id="apply-date-range" class="btn" style="border-radius: 8px; background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%); color: white; border: none; font-weight: 500; padding: 8px 12px;">
+                    Apply
+                </button>
+            </div>
+            <a href="#" id="export-reports" class="btn" style="display: flex; align-items: center; gap: 8px; border-radius: 8px; background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%); color: white; border: none; font-weight: 500; padding: 10px 16px;">
+                <i class="fas fa-file-export"></i> Export Reports
+            </a>
         </div>
     </div>
-    <div>
-        <a href="#" class="btn btn-sm">
-            <i class="fas fa-file-export"></i> Export Reports
-        </a>
-    </div>
-</div>
 
-<div class="stats-grid">
-    <div class="stat-card">
-        <h3>Total Orders</h3>
-        <div class="value">248</div>
-        <div class="trend up">+12% <i class="fas fa-arrow-up"></i></div>
-    </div>
-    
-    <div class="stat-card">
-        <h3>Revenue</h3>
-        <div class="value">$12,486</div>
-        <div class="trend up">+8% <i class="fas fa-arrow-up"></i></div>
-    </div>
-    
-    <div class="stat-card">
-        <h3>Average Order Value</h3>
-        <div class="value">$50.35</div>
-        <div class="trend down">-2% <i class="fas fa-arrow-down"></i></div>
-    </div>
-    
-    <div class="stat-card">
-        <h3>Items Sold</h3>
-        <div class="value">1,342</div>
-        <div class="trend up">+15% <i class="fas fa-arrow-up"></i></div>
-    </div>
-</div>
-
-<div class="card">
-    <h2>Sales Performance</h2>
-    <div class="chart-container" style="height: 300px; background: var(--background-dark); position: relative; margin: 1.5rem 0; border-radius: 8px; overflow: hidden; padding: 1rem;">
-        <!-- This would be a real chart in a production environment -->
-        <div style="height: 100%; width: 100%; display: flex; align-items: flex-end;">
-            <div style="flex: 1; height: 60%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 75%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 45%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 80%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 65%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 90%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 70%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 50%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 85%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 78%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 60%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-            <div style="flex: 1; height: 95%; background: linear-gradient(180deg, var(--primary-color) 0%, rgba(108, 99, 255, 0.3) 100%); margin: 0 0.25rem; border-radius: 4px 4px 0 0;"></div>
-        </div>
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: var(--border-color);"></div>
-    </div>
-    <div style="display: flex; justify-content: center; gap: 2rem;">
-        <div>
-            <span style="color: var(--text-secondary);">Month-to-date: </span>
-            <span style="font-weight: 600;">$4,128</span>
-        </div>
-        <div>
-            <span style="color: var(--text-secondary);">Year-to-date: </span>
-            <span style="font-weight: 600;">$48,756</span>
-        </div>
-    </div>
-</div>
-
-<div class="row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
-    <div class="card">
-        <h2>Top Selling Items</h2>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Category</th>
-                        <th>Units Sold</th>
-                        <th>Revenue</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>T-Shirt Basic</td>
-                        <td>Shirts</td>
-                        <td>328</td>
-                        <td>$6,560</td>
-                    </tr>
-                    <tr>
-                        <td>Denim Jeans</td>
-                        <td>Pants</td>
-                        <td>145</td>
-                        <td>$7,245</td>
-                    </tr>
-                    <tr>
-                        <td>Cotton Hoodie</td>
-                        <td>Outerwear</td>
-                        <td>112</td>
-                        <td>$4,480</td>
-                    </tr>
-                    <tr>
-                        <td>Polo Shirt</td>
-                        <td>Shirts</td>
-                        <td>95</td>
-                        <td>$2,375</td>
-                    </tr>
-                    <tr>
-                        <td>Casual Shorts</td>
-                        <td>Pants</td>
-                        <td>87</td>
-                        <td>$2,610</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <div class="card">
-        <h2>Sales by Category</h2>
-        <div class="chart-container" style="height: 250px; position: relative; margin: 1.5rem 0;">
-            <!-- This would be a real pie chart in a production environment -->
-            <div style="width: 200px; height: 200px; border-radius: 50%; position: relative; margin: 0 auto; overflow: hidden;">
-                <div style="position: absolute; width: 100%; height: 100%; clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 75% 100%, 50% 50%); background-color: var(--primary-color);"></div>
-                <div style="position: absolute; width: 100%; height: 100%; clip-path: polygon(50% 50%, 75% 100%, 0% 100%, 0% 30%, 50% 0%, 50% 50%); background-color: var(--success-color);"></div>
-                <div style="position: absolute; width: 100%; height: 100%; clip-path: polygon(50% 50%, 0% 30%, 0% 0%, 50% 0%, 50% 50%); background-color: var(--warning-color);"></div>
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                    <span style="font-size: 2rem; font-weight: 600;">100%</span>
-                    <span style="color: var(--text-secondary);">Total Sales</span>
+    <div class="stats-grid" style="flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 1.5rem 0;">
+        <!-- Total Orders Card -->
+        <div class="stat-card" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-radius: 16px; padding: 18px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%); border-radius: 50%;"></div>
+            
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: center; align-items: center; width: 48px; height: 48px; background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%); border-radius: 12px; margin-right: 16px;">
+                    <i class="fas fa-shopping-cart" style="font-size: 20px; color: white;"></i>
+                </div>
+                <h3 style="font-size: 1.2rem; font-weight: 500; color: #E2E8F0; margin: 0;">Total Orders</h3>
+            </div>
+            
+            <div style="display: flex; align-items: baseline; margin-bottom: 8px;">
+                <div id="total-orders" class="value" style="font-size: 3rem; font-weight: 700; color: white; margin-right: 12px;">248</div>
+                <div id="total-orders-trend" class="trend up" style="display: flex; align-items: center; background-color: rgba(16, 185, 129, 0.15); padding: 4px 8px; border-radius: 20px; font-size: 0.875rem; color: #10B981;">
+                    +12% <i class="fas fa-arrow-up" style="margin-left: 4px;"></i>
                 </div>
             </div>
             
-            <div style="display: flex; justify-content: center; gap: 1.5rem; margin-top: 1.5rem;">
-                <div style="display: flex; align-items: center;">
-                    <div style="width: 12px; height: 12px; background-color: var(--primary-color); border-radius: 2px; margin-right: 0.5rem;"></div>
-                    <span>Shirts (45%)</span>
+            <div style="font-size: 0.875rem; color: #94A3B8;">Compared to last period</div>
+        </div>
+        
+        <!-- Revenue Card -->
+        <div class="stat-card" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-radius: 16px; padding: 18px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, rgba(14, 165, 233, 0) 70%); border-radius: 50%;"></div>
+            
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: center; align-items: center; width: 48px; height: 48px; background: linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%); border-radius: 12px; margin-right: 16px;">
+                    <i class="fas fa-dollar-sign" style="font-size: 20px; color: white;"></i>
                 </div>
-                <div style="display: flex; align-items: center;">
-                    <div style="width: 12px; height: 12px; background-color: var(--success-color); border-radius: 2px; margin-right: 0.5rem;"></div>
-                    <span>Pants (35%)</span>
-                </div>
-                <div style="display: flex; align-items: center;">
-                    <div style="width: 12px; height: 12px; background-color: var(--warning-color); border-radius: 2px; margin-right: 0.5rem;"></div>
-                    <span>Outerwear (20%)</span>
+                <h3 style="font-size: 1.2rem; font-weight: 500; color: #E2E8F0; margin: 0;">Revenue</h3>
+            </div>
+            
+            <div style="display: flex; align-items: baseline; margin-bottom: 8px;">
+                <div id="total-revenue" class="value" style="font-size: 3rem; font-weight: 700; color: white; margin-right: 12px;">$12,486</div>
+                <div id="total-revenue-trend" class="trend up" style="display: flex; align-items: center; background-color: rgba(16, 185, 129, 0.15); padding: 4px 8px; border-radius: 20px; font-size: 0.875rem; color: #10B981;">
+                    +8% <i class="fas fa-arrow-up" style="margin-left: 4px;"></i>
                 </div>
             </div>
+            
+            <div style="font-size: 0.875rem; color: #94A3B8;">Compared to last period</div>
         </div>
-    </div>
-</div>
-
-<div class="card" style="margin-top: 1.5rem;">
-    <h2>Order History</h2>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Items</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>#ORD-001</td>
-                    <td>Mar 18, 2024</td>
-                    <td>John Smith</td>
-                    <td>3</td>
-                    <td>$89.97</td>
-                    <td><span class="badge badge-warning">Pending</span></td>
-                    <td>
-                        <a href="#" class="btn btn-sm">View</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>#ORD-002</td>
-                    <td>Mar 17, 2024</td>
-                    <td>Emma Johnson</td>
-                    <td>5</td>
-                    <td>$175.95</td>
-                    <td><span class="badge badge-success">Delivered</span></td>
-                    <td>
-                        <a href="#" class="btn btn-sm">View</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>#ORD-003</td>
-                    <td>Mar 16, 2024</td>
-                    <td>Michael Brown</td>
-                    <td>2</td>
-                    <td>$69.98</td>
-                    <td><span class="badge badge-info">In Transit</span></td>
-                    <td>
-                        <a href="#" class="btn btn-sm">View</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>#ORD-004</td>
-                    <td>Mar 15, 2024</td>
-                    <td>Jennifer Davis</td>
-                    <td>1</td>
-                    <td>$49.99</td>
-                    <td><span class="badge badge-info">In Transit</span></td>
-                    <td>
-                        <a href="#" class="btn btn-sm">View</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>#ORD-005</td>
-                    <td>Mar 14, 2024</td>
-                    <td>Robert Wilson</td>
-                    <td>4</td>
-                    <td>$119.96</td>
-                    <td><span class="badge badge-success">Delivered</span></td>
-                    <td>
-                        <a href="#" class="btn btn-sm">View</a>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    
-    <div style="margin-top: 1rem; display: flex; justify-content: center;">
-        <div class="pagination" style="display: flex; gap: 0.5rem;">
-            <a href="#" class="btn btn-sm">Previous</a>
-            <a href="#" class="btn btn-sm" style="background-color: rgba(108, 99, 255, 0.2);">1</a>
-            <a href="#" class="btn btn-sm">2</a>
-            <a href="#" class="btn btn-sm">3</a>
-            <a href="#" class="btn btn-sm">Next</a>
+        
+        <!-- Items Sold Card -->
+        <div class="stat-card" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-radius: 16px; padding: 18px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, rgba(236, 72, 153, 0) 70%); border-radius: 50%;"></div>
+            
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: center; align-items: center; width: 48px; height: 48px; background: linear-gradient(135deg, #EC4899 0%, #F472B6 100%); border-radius: 12px; margin-right: 16px;">
+                    <i class="fas fa-box" style="font-size: 20px; color: white;"></i>
+                </div>
+                <h3 style="font-size: 1.2rem; font-weight: 500; color: #E2E8F0; margin: 0;">Items Sold</h3>
+            </div>
+            
+            <div style="display: flex; align-items: baseline; margin-bottom: 8px;">
+                <div id="items-sold" class="value" style="font-size: 3rem; font-weight: 700; color: white; margin-right: 12px;">1,342</div>
+                <div id="items-sold-trend" class="trend up" style="display: flex; align-items: center; background-color: rgba(16, 185, 129, 0.15); padding: 4px 8px; border-radius: 20px; font-size: 0.875rem; color: #10B981;">
+                    +15% <i class="fas fa-arrow-up" style="margin-left: 4px;"></i>
+                </div>
+            </div>
+            
+            <div style="font-size: 0.875rem; color: #94A3B8;">Compared to last period</div>
+        </div>
+        
+        <!-- Profit Margin Card -->
+        <div class="stat-card" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-radius: 16px; padding: 18px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0) 70%); border-radius: 50%;"></div>
+            
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: center; align-items: center; width: 48px; height: 48px; background: linear-gradient(135deg, #10B981 0%, #34D399 100%); border-radius: 12px; margin-right: 16px;">
+                    <i class="fas fa-chart-line" style="font-size: 20px; color: white;"></i>
+                </div>
+                <h3 style="font-size: 1.2rem; font-weight: 500; color: #E2E8F0; margin: 0;">Profit Margin</h3>
+            </div>
+            
+            <div style="display: flex; align-items: baseline; margin-bottom: 8px;">
+                <div id="profit-margin" class="value" style="font-size: 3rem; font-weight: 700; color: white; margin-right: 12px;">32.8%</div>
+                <div id="profit-margin-trend" class="trend up" style="display: flex; align-items: center; background-color: rgba(16, 185, 129, 0.15); padding: 4px 8px; border-radius: 20px; font-size: 0.875rem; color: #10B981;">
+                    +3.4% <i class="fas fa-arrow-up" style="margin-left: 4px;"></i>
+                </div>
+            </div>
+            
+            <div style="font-size: 0.875rem; color: #94A3B8;">Compared to last period</div>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const dateRangeSelect = document.querySelector('select');
+    const timeRangeSelector = document.getElementById('time-range-selector');
     const customDateRange = document.getElementById('custom-date-range');
+    const dateFrom = document.getElementById('date-from');
+    const dateTo = document.getElementById('date-to');
+    const applyDateRange = document.getElementById('apply-date-range');
     
-    dateRangeSelect.addEventListener('change', function() {
+    // Set default date values if custom is selected
+    if (timeRangeSelector.value === 'custom') {
+        const today = new Date();
+        const lastMonth = new Date();
+        lastMonth.setMonth(today.getMonth() - 1);
+        
+        dateFrom.value = formatDate(lastMonth);
+        dateTo.value = formatDate(today);
+    }
+    
+    // Handle time range change
+    timeRangeSelector.addEventListener('change', function() {
         if (this.value === 'custom') {
             customDateRange.style.display = 'flex';
         } else {
             customDateRange.style.display = 'none';
+            // Fetch new data based on time range
+            fetchStatsData(this.value);
         }
     });
+    
+    // Handle custom date range apply button
+    applyDateRange.addEventListener('click', function() {
+        if (dateFrom.value && dateTo.value) {
+            fetchStatsData('custom', dateFrom.value, dateTo.value);
+        } else {
+            alert('Please select both start and end dates');
+        }
+    });
+    
+    // Function to fetch data based on time range
+    function fetchStatsData(timeRange, fromDate = null, toDate = null) {
+        // Show loading state
+        document.querySelectorAll('.stat-card .value').forEach(el => {
+            el.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        });
+        
+        // In a real app, you would make an AJAX call to your backend
+        // For this demo, we'll simulate with different data for different time ranges
+        setTimeout(() => {
+            let data;
+            
+            switch(timeRange) {
+                case 'this_month':
+                    data = {
+                        totalOrders: 248,
+                        totalOrdersTrend: 12,
+                        totalRevenue: 12486,
+                        totalRevenueTrend: 8,
+                        avgOrderValue: 50.35,
+                        avgOrderValueTrend: -2,
+                        itemsSold: 1342,
+                        itemsSoldTrend: 15,
+                        profitMargin: 32.8,
+                        profitMarginTrend: 3.4
+                    };
+                    break;
+                case 'last_month':
+                    data = {
+                        totalOrders: 203,
+                        totalOrdersTrend: 5,
+                        totalRevenue: 10152,
+                        totalRevenueTrend: 3,
+                        avgOrderValue: 50.01,
+                        avgOrderValueTrend: -3.5,
+                        itemsSold: 1105,
+                        itemsSoldTrend: 8,
+                        profitMargin: 30.1,
+                        profitMarginTrend: 1.2
+                    };
+                    break;
+                case 'last_3_months':
+                    data = {
+                        totalOrders: 625,
+                        totalOrdersTrend: 18,
+                        totalRevenue: 31450,
+                        totalRevenueTrend: 15,
+                        avgOrderValue: 50.32,
+                        avgOrderValueTrend: 1.2,
+                        itemsSold: 3421,
+                        itemsSoldTrend: 22,
+                        profitMargin: 33.5,
+                        profitMarginTrend: 4.8
+                    };
+                    break;
+                case 'this_year':
+                    data = {
+                        totalOrders: 2150,
+                        totalOrdersTrend: 25,
+                        totalRevenue: 108324,
+                        totalRevenueTrend: 22,
+                        avgOrderValue: 50.38,
+                        avgOrderValueTrend: 4.2,
+                        itemsSold: 11843,
+                        itemsSoldTrend: 28,
+                        profitMargin: 34.2,
+                        profitMarginTrend: 5.3
+                    };
+                    break;
+                case 'custom':
+                    // Here you would use the fromDate and toDate parameters for your API call
+                    data = {
+                        totalOrders: 352,
+                        totalOrdersTrend: 10,
+                        totalRevenue: 17645,
+                        totalRevenueTrend: 7,
+                        avgOrderValue: 50.13,
+                        avgOrderValueTrend: 0.5,
+                        itemsSold: 1879,
+                        itemsSoldTrend: 12,
+                        profitMargin: 31.5,
+                        profitMarginTrend: 2.1
+                    };
+                    break;
+                default:
+                    data = {
+                        totalOrders: 248,
+                        totalOrdersTrend: 12,
+                        totalRevenue: 12486,
+                        totalRevenueTrend: 8,
+                        avgOrderValue: 50.35,
+                        avgOrderValueTrend: -2,
+                        itemsSold: 1342,
+                        itemsSoldTrend: 15,
+                        profitMargin: 32.8,
+                        profitMarginTrend: 3.4
+                    };
+            }
+            
+            // Update the UI with the new data
+            updateStatsUI(data);
+        }, 500); // Simulate network delay
+    }
+    
+    // Function to update the UI with new data
+    function updateStatsUI(data) {
+        // Update total orders
+        document.getElementById('total-orders').textContent = data.totalOrders;
+        updateTrend('total-orders-trend', data.totalOrdersTrend);
+        
+        // Update revenue
+        document.getElementById('total-revenue').textContent = '$' + numberWithCommas(data.totalRevenue);
+        updateTrend('total-revenue-trend', data.totalRevenueTrend);
+        
+        // Update average order value
+        document.getElementById('avg-order-value').textContent = '$' + data.avgOrderValue.toFixed(2);
+        updateTrend('avg-order-value-trend', data.avgOrderValueTrend);
+        
+        // Update items sold
+        document.getElementById('items-sold').textContent = numberWithCommas(data.itemsSold);
+        updateTrend('items-sold-trend', data.itemsSoldTrend);
+        
+        // Update profit margin
+        document.getElementById('profit-margin').textContent = data.profitMargin.toFixed(1) + '%';
+        updateTrend('profit-margin-trend', data.profitMarginTrend);
+    }
+    
+    // Helper function to update trend indicators
+    function updateTrend(elementId, trendValue) {
+        const element = document.getElementById(elementId);
+        const prefix = trendValue >= 0 ? '+' : '';
+        const iconClass = trendValue >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+        const bgColorClass = trendValue >= 0 
+            ? 'background-color: rgba(16, 185, 129, 0.15); color: #10B981;'
+            : 'background-color: rgba(239, 68, 68, 0.15); color: #EF4444;';
+        
+        element.innerHTML = `${prefix}${trendValue}% <i class="fas ${iconClass}" style="margin-left: 4px;"></i>`;
+        element.setAttribute('style', `display: flex; align-items: center; ${bgColorClass} padding: 4px 8px; border-radius: 20px; font-size: 0.875rem;`);
+    }
+    
+    // Helper function to format dates
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    // Helper function to format numbers with commas
+    function numberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    
+    // Initially load data based on selected time range
+    fetchStatsData(timeRangeSelector.value);
 });
 </script>
 

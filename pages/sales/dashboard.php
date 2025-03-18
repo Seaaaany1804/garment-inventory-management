@@ -85,34 +85,5 @@ include '../../layouts/header.php';
     </div>
 </div>
 
-<div class="card">
-    <h2>Popular Items</h2>
-    <div class="item-cards">
-        <div class="item-card">
-            <div class="item-image placeholder"></div>
-            <div class="item-details">
-                <h3>T-Shirt Basic</h3>
-                <p>Stock: 250 units</p>
-                <div class="item-price">$19.99</div>
-            </div>
-        </div>
-        <div class="item-card">
-            <div class="item-image placeholder"></div>
-            <div class="item-details">
-                <h3>Denim Jeans</h3>
-                <p>Stock: 15 units</p>
-                <div class="item-price">$49.99</div>
-            </div>
-        </div>
-        <div class="item-card">
-            <div class="item-image placeholder"></div>
-            <div class="item-details">
-                <h3>Cotton Hoodie</h3>
-                <p>Stock: 78 units</p>
-                <div class="item-price">$39.99</div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <?php include '../../layouts/footer.php'; ?> 

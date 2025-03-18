@@ -71,7 +71,7 @@ if (!isset($_SESSION['role'])) {
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="/garmet/garment-inventory-management/pages/sales/inventory.php">
+                                <a class="nav-link text-white" href="/garment-inventory-management/pages/sales/inventory.php">
                                     <i class="fas fa-tshirt me-2"></i> View Products
                                 </a>
                             </li>
@@ -82,12 +82,12 @@ if (!isset($_SESSION['role'])) {
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="/garmet/garment-inventory-management/pages/staff/manageinventory.php">
+                                <a class="nav-link text-white" href="/garment-inventory-management/pages/staff/manageinventory.php">
                                     <i class="fas fa-boxes me-2"></i> Manage Inventory
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="/garmet/garment-inventory-management/pages/staff/processorders.php">
+                                <a class="nav-link text-white" href="/garment-inventory-management/pages/staff/processorders.php">
                                     <i class="fas fa-tasks me-2"></i> Process Orders
                                 </a>
                             </li>

@@ -77,12 +77,12 @@ CREATE TABLE IF NOT EXISTS activity_log (
 
 -- Insert initial admin user (password: admin123)
 INSERT INTO users (username, password, full_name, role)
-VALUES ('admin1234', 'admin1234', 'Admin User', 'admin');
+VALUES ('admin', 'admin', 'Admin User', 'admin');
 
 -- Insert initial sales user (password: sales123)
 INSERT INTO users (username, password, full_name, role)
-VALUES ('sales1234', 'sales1234', 'Sales User', 'sales');
+VALUES ('sales', 'sales', 'Sales User', 'sales');
 
 -- Insert initial staff user (password: staff123)
 INSERT INTO users (username, password, full_name, role)
-VALUES ('staff1234', 'staff1234', 'Staff User', 'staff');
+VALUES ('staff', 'staff', 'Staff User', 'staff');

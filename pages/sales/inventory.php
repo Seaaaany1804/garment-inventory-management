@@ -38,7 +38,7 @@ include '../../layouts/header.php';
                 <p>Category: Shirts</p>
                 <p>Stock: 250 units</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                    <div class="item-price">$19.99</div>
+                    <div class="item-price">₱19.99</div>
                     <button onclick="createOrder(1, 'T-Shirt Basic', 250, 19.99)" class="btn btn-sm">
                         <i class="fas fa-shopping-cart"></i> Order
                     </button>
@@ -57,7 +57,7 @@ include '../../layouts/header.php';
                 <p>Category: Pants</p>
                 <p>Stock: 15 units</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                    <div class="item-price">$49.99</div>
+                    <div class="item-price">₱49.99</div>
                     <a href="orders.php?action=new&item=2" class="btn btn-sm">
                         <i class="fas fa-shopping-cart"></i> Order
                     </a>
@@ -76,7 +76,7 @@ include '../../layouts/header.php';
                 <p>Category: Outerwear</p>
                 <p>Stock: 78 units</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                    <div class="item-price">$39.99</div>
+                    <div class="item-price">₱39.99</div>
                     <a href="orders.php?action=new&item=3" class="btn btn-sm">
                         <i class="fas fa-shopping-cart"></i> Order
                     </a>
@@ -95,7 +95,7 @@ include '../../layouts/header.php';
                 <p>Category: Shirts</p>
                 <p>Stock: 120 units</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                    <div class="item-price">$24.99</div>
+                    <div class="item-price">₱24.99</div>
                     <a href="orders.php?action=new&item=4" class="btn btn-sm">
                         <i class="fas fa-shopping-cart"></i> Order
                     </a>
@@ -114,7 +114,7 @@ include '../../layouts/header.php';
                 <p>Category: Pants</p>
                 <p>Stock: 85 units</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                    <div class="item-price">$29.99</div>
+                    <div class="item-price">₱29.99</div>
                     <a href="orders.php?action=new&item=5" class="btn btn-sm">
                         <i class="fas fa-shopping-cart"></i> Order
                     </a>
@@ -133,7 +133,7 @@ include '../../layouts/header.php';
                 <p>Category: Outerwear</p>
                 <p>Stock: 0 units</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                    <div class="item-price">$89.99</div>
+                    <div class="item-price">₱89.99</div>
                     <a href="#" class="btn btn-sm" style="opacity: 0.5; cursor: not-allowed;">
                         <i class="fas fa-shopping-cart"></i> Order
                     </a>
@@ -202,16 +202,16 @@ include '../../layouts/header.php';
                             <h6 class="card-title text-dark">Order Summary</h6>
                             <div class="d-flex justify-content-between">
                                 <span class="text-dark">Subtotal:</span>
-                                <span class="text-dark" id="subtotal">$0.00</span>
+                                <span class="text-dark" id="subtotal">₱0.00</span>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <span class="text-dark">Delivery Fee:</span>
-                                <span class="text-dark">$5.00</span>
+                                <span class="text-dark">₱5.00</span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between fw-bold">
                                 <span class="text-dark">Total:</span>
-                                <span class="text-dark" id="totalAmount">$0.00</span>
+                                <span class="text-dark" id="totalAmount">₱0.00</span>
                             </div>
                         </div>
                     </div>
@@ -230,7 +230,7 @@ include '../../layouts/header.php';
         // Populate modal with product details
         document.getElementById('modalProductName').textContent = productName;
         document.getElementById('modalAvailableStock').textContent = stock + ' units';
-        document.getElementById('modalPrice').textContent = '$' + price;
+        document.getElementById('modalPrice').textContent = '₱' + price;
         document.getElementById('maxOrder').textContent = stock;
         
         // Set maximum order quantity
@@ -240,8 +240,8 @@ include '../../layouts/header.php';
         document.getElementById('orderQuantity').addEventListener('input', function() {
             const quantity = this.value;
             const subtotal = quantity * price;
-            document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
-            document.getElementById('totalAmount').textContent = '$' + (subtotal + 5).toFixed(2);
+            document.getElementById('subtotal').textContent = '₱' + subtotal.toFixed(2);
+            document.getElementById('totalAmount').textContent = '₱' + (subtotal + 5).toFixed(2);
         });
         
         // Show modal

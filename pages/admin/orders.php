@@ -145,7 +145,7 @@ $counts = [
                         </td>
                         <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo $order['customer']; ?></td>
                         <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo date('M d, Y', strtotime($order['date'])); ?></td>
-                        <td style="padding: 12px 16px; color: #e2e8f0;">$<?php echo number_format($order['total'], 2); ?></td>
+                        <td style="padding: 12px 16px; color: #e2e8f0;">₱<?php echo number_format($order['total'], 2); ?></td>
                         <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo $order['items']; ?></td>
                         <td style="padding: 12px 16px;">
                             <?php
@@ -350,8 +350,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <tr style="border-bottom: 1px solid #374151;">
                         <td style="padding: 12px 8px; color: #e2e8f0;">${item.name}</td>
                         <td style="padding: 12px 8px; color: #e2e8f0; text-align: center;">${item.quantity}</td>
-                        <td style="padding: 12px 8px; color: #e2e8f0; text-align: right;">$${item.price.toFixed(2)}</td>
-                        <td style="padding: 12px 8px; color: #e2e8f0; text-align: right;">$${itemSubtotal.toFixed(2)}</td>
+                        <td style="padding: 12px 8px; color: #e2e8f0; text-align: right;">₱${item.price.toFixed(2)}</td>
+                        <td style="padding: 12px 8px; color: #e2e8f0; text-align: right;">₱${itemSubtotal.toFixed(2)}</td>
                     </tr>
                     `;
                 });
@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style="background-color: #111827; padding: 20px; border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 1.125rem;">
                             <span style="color: #e2e8f0;">Total:</span>
-                            <span style="color: #e2e8f0;">$${receipt.total.toFixed(2)}</span>
+                            <span style="color: #e2e8f0;">₱${receipt.total.toFixed(2)}</span>
                         </div>
                     </div>
                 `;

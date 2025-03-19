@@ -63,13 +63,13 @@ $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
             
             <div style="display: flex; align-items: center; margin-bottom: 16px;">
                 <div style="display: flex; justify-content: center; align-items: center; width: 48px; height: 48px; background: linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%); border-radius: 12px; margin-right: 16px;">
-                    <i class="fas fa-dollar-sign" style="font-size: 20px; color: white;"></i>
+                    <i class="fas fa-peso-sign" style="font-size: 20px; color: white;"></i>
                 </div>
                 <h3 style="font-size: 1.2rem; font-weight: 500; color: #E2E8F0; margin: 0;">Revenue</h3>
             </div>
             
             <div style="display: flex; align-items: baseline; margin-bottom: 8px;">
-                <div id="total-revenue" class="value" style="font-size: 3rem; font-weight: 700; color: white; margin-right: 12px;">$12,486</div>
+                <div id="total-revenue" class="value" style="font-size: 3rem; font-weight: 700; color: white; margin-right: 12px;">₱12,486</div>
                 <div id="total-revenue-trend" class="trend up" style="display: flex; align-items: center; background-color: rgba(16, 185, 129, 0.15); padding: 4px 8px; border-radius: 20px; font-size: 0.875rem; color: #10B981;">
                     +8% <i class="fas fa-arrow-up" style="margin-left: 4px;"></i>
                 </div>
@@ -271,11 +271,11 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTrend('total-orders-trend', data.totalOrdersTrend);
         
         // Update revenue
-        document.getElementById('total-revenue').textContent = '$' + numberWithCommas(data.totalRevenue);
+        document.getElementById('total-revenue').textContent = '₱' + numberWithCommas(data.totalRevenue);
         updateTrend('total-revenue-trend', data.totalRevenueTrend);
         
         // Update average order value
-        document.getElementById('avg-order-value').textContent = '$' + data.avgOrderValue.toFixed(2);
+        document.getElementById('avg-order-value').textContent = '₱' + data.avgOrderValue.toFixed(2);
         updateTrend('avg-order-value-trend', data.avgOrderValueTrend);
         
         // Update items sold

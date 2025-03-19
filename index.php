@@ -6,28 +6,64 @@ error_reporting(E_ALL);
 
 session_start();
 
-// Basic authentication (for demo purposes)
+// Include database connection
+require_once 'includes/config/database.php';
+
+// Basic authentication with database
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
     
-    if ($username === 'admin' && $password === 'admin') {
-        $_SESSION['role'] = 'admin';
-        $_SESSION['username'] = 'admin';
-        header("Location: pages/admin/dashboard.php");
-        exit();
-    } elseif ($username === 'sales' && $password === 'sales') {
-        $_SESSION['role'] = 'sales';
-        $_SESSION['username'] = 'sales';
-        header("Location: pages/sales/dashboard.php");
-        exit();
-    } elseif ($username === 'staff' && $password === 'staff') {
-        $_SESSION['role'] = 'staff';
-        $_SESSION['username'] = 'staff';
-        header("Location: pages/staff/dashboard.php");
-        exit();
-    } else {
-        $error_message = "Invalid username or password!";
+    try {
+        // Prepare statement to prevent SQL injection
+        $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND status = 1");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch();
+        
+        if ($user && $password === $user['password']) { // In production, use password_verify() with hashed passwords
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['full_name'] = $user['full_name'];
+            
+            // Log login activity
+            $stmt = $conn->prepare("INSERT INTO activity_log (user_id, description, action) VALUES (?, ?, ?)");
+            $stmt->execute([
+                $user['id'],
+                "User logged in successfully",
+                "login"
+            ]);
+            
+            // Redirect based on role
+            switch ($user['role']) {
+                case 'admin':
+                    header("Location: pages/admin/dashboard.php");
+                    break;
+                case 'sales':
+                    header("Location: pages/sales/dashboard.php");
+                    break;
+                case 'staff':
+                    header("Location: pages/staff/dashboard.php");
+                    break;
+                default:
+                    header("Location: index.php");
+            }
+            exit();
+        } else {
+            $error_message = "Invalid username or password!";
+            
+            // Log failed login attempt
+            if ($user) {
+                $stmt = $conn->prepare("INSERT INTO activity_log (user_id, description, action) VALUES (?, ?, ?)");
+                $stmt->execute([
+                    $user['id'],
+                    "Failed login attempt",
+                    "login_failed"
+                ]);
+            }
+        }
+    } catch (PDOException $e) {
+        $error_message = "Database error: " . $e->getMessage();
     }
 }
 ?>

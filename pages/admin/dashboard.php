@@ -3,16 +3,105 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Start session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once '../../includes/auth/auth_check.php';
+require_once '../../includes/config/database.php';
+checkAuth('admin');
 
 $pageTitle = "Overall Reports";
-include '../../layouts/header.php';
 
 // Default to current month
 $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
+
+// Calculate date ranges based on selected time range
+$endDate = date('Y-m-d');
+switch ($timeRange) {
+    case 'this_month':
+        $startDate = date('Y-m-01');
+        break;
+    case 'last_month':
+        $startDate = date('Y-m-01', strtotime('-1 month'));
+        $endDate = date('Y-m-t', strtotime('-1 month'));
+        break;
+    case 'last_3_months':
+        $startDate = date('Y-m-01', strtotime('-3 months'));
+        break;
+    case 'this_year':
+        $startDate = date('Y-01-01');
+        break;
+    default:
+        $startDate = date('Y-m-01');
+}
+
+try {
+    // Get total stock items and value
+    $stmt = $conn->query("SELECT 
+        COUNT(*) as total_items,
+        SUM(stock) as total_stock,
+        SUM(stock * price) as total_value
+        FROM products");
+    $stockStats = $stmt->fetch();
+
+    // Get warehouse outflow (items shipped)
+    $stmt = $conn->prepare("SELECT 
+        COUNT(DISTINCT o.id) as total_orders,
+        SUM(oi.quantity) as total_items_shipped
+        FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
+        WHERE o.status = 'shipped'
+        AND o.created_at BETWEEN ? AND ?");
+    $stmt->execute([$startDate, $endDate]);
+    $outflowStats = $stmt->fetch();
+
+    // Get delivered items
+    $stmt = $conn->prepare("SELECT 
+        COUNT(DISTINCT o.id) as total_orders,
+        SUM(oi.quantity) as total_items_delivered
+        FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
+        WHERE o.status = 'delivered'
+        AND o.created_at BETWEEN ? AND ?");
+    $stmt->execute([$startDate, $endDate]);
+    $deliveredStats = $stmt->fetch();
+
+    // Get total revenue
+    $stmt = $conn->prepare("SELECT 
+        SUM(total_amount) as total_revenue
+        FROM orders
+        WHERE status IN ('shipped', 'delivered')
+        AND created_at BETWEEN ? AND ?");
+    $stmt->execute([$startDate, $endDate]);
+    $revenueStats = $stmt->fetch();
+
+    // Get recently added stock
+    $stmt = $conn->query("SELECT 
+        p.name as product_name,
+        c.name as category_name,
+        p.stock,
+        p.created_at
+        FROM products p
+        JOIN categories c ON p.category_id = c.id
+        ORDER BY p.created_at DESC
+        LIMIT 3");
+    $recentStock = $stmt->fetchAll();
+
+    // Get low stock items
+    $stmt = $conn->query("SELECT 
+        p.name as product_name,
+        c.name as category_name,
+        p.stock
+        FROM products p
+        JOIN categories c ON p.category_id = c.id
+        WHERE p.stock <= 10
+        ORDER BY p.stock ASC
+        LIMIT 3");
+    $lowStock = $stmt->fetchAll();
+
+} catch (PDOException $e) {
+    error_log("Database error: " . $e->getMessage());
+    $error_message = "Error fetching dashboard data";
+}
+
+include '../../layouts/header.php';
 ?>
 
 <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
@@ -29,6 +118,7 @@ $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
 </div>
 
 <div class="stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px;">
+    <!-- Total Stock Card -->
     <div class="stat-card" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-radius: 16px; padding: 18px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;">
         <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%); border-radius: 50%;"></div>
         
@@ -40,15 +130,20 @@ $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
         </div>
         
         <div style="display: flex; align-items: baseline; margin-bottom: 8px;">
-            <div id="total-stock" class="value" style="font-size: 2.5rem; font-weight: 700; color: white; margin-right: 12px;">1,245</div>
-            <div id="total-stock-trend" class="trend up" style="display: flex; align-items: center; background-color: rgba(16, 185, 129, 0.15); padding: 4px 8px; border-radius: 20px; font-size: 0.875rem; color: #10B981;">
-                +8% <i class="fas fa-arrow-up" style="margin-left: 4px;"></i>
+            <div class="value" style="font-size: 2.5rem; font-weight: 700; color: white; margin-right: 12px;">
+                <?php echo number_format($stockStats['total_stock']); ?>
+            </div>
+            <div style="font-size: 1rem; color: #94A3B8;">
+                (<?php echo number_format($stockStats['total_items']); ?> items)
             </div>
         </div>
         
-        <div style="font-size: 0.875rem; color: #94A3B8;">Compared to last period</div>
+        <div style="font-size: 0.875rem; color: #94A3B8;">
+            Total Value: ₱<?php echo number_format($stockStats['total_value'], 2); ?>
+        </div>
     </div>
     
+    <!-- Warehouse Outflow Card -->
     <div class="stat-card" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-radius: 16px; padding: 18px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;">
         <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, rgba(236, 72, 153, 0) 70%); border-radius: 50%;"></div>
         
@@ -60,15 +155,17 @@ $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
         </div>
         
         <div style="display: flex; align-items: baseline; margin-bottom: 8px;">
-            <div id="warehouse-outflow" class="value" style="font-size: 2.5rem; font-weight: 700; color: white; margin-right: 12px;">78</div>
-            <div id="warehouse-outflow-trend" class="trend up" style="display: flex; align-items: center; background-color: rgba(16, 185, 129, 0.15); padding: 4px 8px; border-radius: 20px; font-size: 0.875rem; color: #10B981;">
-                +12% <i class="fas fa-arrow-up" style="margin-left: 4px;"></i>
+            <div class="value" style="font-size: 2.5rem; font-weight: 700; color: white; margin-right: 12px;">
+                <?php echo number_format($outflowStats['total_items_shipped']); ?>
             </div>
         </div>
         
-        <div style="font-size: 0.875rem; color: #94A3B8;">Compared to last period</div>
+        <div style="font-size: 0.875rem; color: #94A3B8;">
+            From <?php echo number_format($outflowStats['total_orders']); ?> orders
+        </div>
     </div>
     
+    <!-- Delivered Items Card -->
     <div class="stat-card" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-radius: 16px; padding: 18px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;">
         <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0) 70%); border-radius: 50%;"></div>
         
@@ -80,15 +177,17 @@ $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
         </div>
         
         <div style="display: flex; align-items: baseline; margin-bottom: 8px;">
-            <div id="delivered-items" class="value" style="font-size: 2.5rem; font-weight: 700; color: white; margin-right: 12px;">42</div>
-            <div id="delivered-items-trend" class="trend up" style="display: flex; align-items: center; background-color: rgba(16, 185, 129, 0.15); padding: 4px 8px; border-radius: 20px; font-size: 0.875rem; color: #10B981;">
-                +5% <i class="fas fa-arrow-up" style="margin-left: 4px;"></i>
+            <div class="value" style="font-size: 2.5rem; font-weight: 700; color: white; margin-right: 12px;">
+                <?php echo number_format($deliveredStats['total_items_delivered']); ?>
             </div>
         </div>
         
-        <div style="font-size: 0.875rem; color: #94A3B8;">Compared to last period</div>
+        <div style="font-size: 0.875rem; color: #94A3B8;">
+            From <?php echo number_format($deliveredStats['total_orders']); ?> orders
+        </div>
     </div>
     
+    <!-- Revenue Card -->
     <div class="stat-card" style="display: flex; flex-direction: column; background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); border-radius: 16px; padding: 18px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); position: relative; overflow: hidden;">
         <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, rgba(14, 165, 233, 0) 70%); border-radius: 50%;"></div>
         
@@ -100,13 +199,14 @@ $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
         </div>
         
         <div style="display: flex; align-items: baseline; margin-bottom: 8px;">
-            <div id="total-revenue" class="value" style="font-size: 2.5rem; font-weight: 700; color: white; margin-right: 12px;">$12,486</div>
-            <div id="total-revenue-trend" class="trend up" style="display: flex; align-items: center; background-color: rgba(16, 185, 129, 0.15); padding: 4px 8px; border-radius: 20px; font-size: 0.875rem; color: #10B981;">
-                +15% <i class="fas fa-arrow-up" style="margin-left: 4px;"></i>
+            <div class="value" style="font-size: 2.5rem; font-weight: 700; color: white; margin-right: 12px;">
+                ₱<?php echo number_format($revenueStats['total_revenue'], 2); ?>
             </div>
         </div>
         
-        <div style="font-size: 0.875rem; color: #94A3B8;">Compared to last period</div>
+        <div style="font-size: 0.875rem; color: #94A3B8;">
+            From shipped & delivered orders
+        </div>
     </div>
 </div>
 
@@ -125,24 +225,14 @@ $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php foreach ($recentStock as $item): ?>
                         <tr>
-                            <td>Women's Blouse</td>
-                            <td>Tops</td>
-                            <td>50</td>
-                            <td>Mar 18, 2024</td>
+                            <td><?php echo htmlspecialchars($item['product_name']); ?></td>
+                            <td><?php echo htmlspecialchars($item['category_name']); ?></td>
+                            <td><?php echo number_format($item['stock']); ?></td>
+                            <td><?php echo date('M d, Y', strtotime($item['created_at'])); ?></td>
                         </tr>
-                        <tr>
-                            <td>Men's Chino Pants</td>
-                            <td>Bottoms</td>
-                            <td>35</td>
-                            <td>Mar 17, 2024</td>
-                        </tr>
-                        <tr>
-                            <td>Summer Dresses</td>
-                            <td>Dresses</td>
-                            <td>25</td>
-                            <td>Mar 16, 2024</td>
-                        </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
@@ -150,46 +240,6 @@ $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
     </div>
     
     <div class="col-md-6">
-        <div class="card">
-            <h2>Recently Added New Items</h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Category</th>
-                            <th>Initial Stock</th>
-                            <th>Date Added</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Premium Wool Coat</td>
-                            <td>Outerwear</td>
-                            <td>20</td>
-                            <td>Mar 18, 2024</td>
-                        </tr>
-                        <tr>
-                            <td>Organic Cotton Tees</td>
-                            <td>Tops</td>
-                            <td>45</td>
-                            <td>Mar 16, 2024</td>
-                        </tr>
-                        <tr>
-                            <td>Designer Scarves</td>
-                            <td>Accessories</td>
-                            <td>30</td>
-                            <td>Mar 15, 2024</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-12">
         <div class="card">
             <h2>Low Stock Items</h2>
             <div class="table-container">
@@ -202,21 +252,17 @@ $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php foreach ($lowStock as $item): ?>
                         <tr>
-                            <td>Denim Jeans (XL)</td>
-                            <td>Bottoms</td>
-                            <td><span class="badge badge-danger">5</span></td>
+                            <td><?php echo htmlspecialchars($item['product_name']); ?></td>
+                            <td><?php echo htmlspecialchars($item['category_name']); ?></td>
+                            <td>
+                                <span class="badge badge-<?php echo $item['stock'] <= 5 ? 'danger' : 'warning'; ?>">
+                                    <?php echo number_format($item['stock']); ?>
+                                </span>
+                            </td>
                         </tr>
-                        <tr>
-                            <td>Cotton Dress Shirt</td>
-                            <td>Tops</td>
-                            <td><span class="badge badge-warning">12</span></td>
-                        </tr>
-                        <tr>
-                            <td>Winter Jacket</td>
-                            <td>Outerwear</td>
-                            <td><span class="badge badge-warning">8</span></td>
-                        </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
@@ -228,105 +274,10 @@ $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
 document.addEventListener('DOMContentLoaded', function() {
     const timeRangeSelector = document.getElementById('time-range-selector');
     
-    // Data for different time periods
-    const timeRangeData = {
-        'this_month': {
-            totalStock: 1245,
-            totalStockTrend: 8,
-            warehouseOutflow: 78,
-            warehouseOutflowTrend: 12,
-            deliveredItems: 42,
-            deliveredItemsTrend: 5,
-            totalRevenue: 12486,
-            totalRevenueTrend: 15
-        },
-        'last_month': {
-            totalStock: 1125,
-            totalStockTrend: 5,
-            warehouseOutflow: 65,
-            warehouseOutflowTrend: 8,
-            deliveredItems: 38,
-            deliveredItemsTrend: 3,
-            totalRevenue: 10250,
-            totalRevenueTrend: 10
-        },
-        'last_3_months': {
-            totalStock: 3250,
-            totalStockTrend: 15,
-            warehouseOutflow: 230,
-            warehouseOutflowTrend: 18,
-            deliveredItems: 142,
-            deliveredItemsTrend: 12,
-            totalRevenue: 42750,
-            totalRevenueTrend: 20
-        },
-        'this_year': {
-            totalStock: 12540,
-            totalStockTrend: 25,
-            warehouseOutflow: 875,
-            warehouseOutflowTrend: 22,
-            deliveredItems: 560,
-            deliveredItemsTrend: 18,
-            totalRevenue: 185250,
-            totalRevenueTrend: 30
-        }
-    };
-    
     // Handle time range change
     timeRangeSelector.addEventListener('change', function() {
-        updateDashboardStats(this.value);
+        window.location.href = 'dashboard.php?time_range=' + this.value;
     });
-    
-    // Function to update dashboard stats based on selected time range
-    function updateDashboardStats(timeRange) {
-        // Show loading state
-        document.querySelectorAll('.stat-card .value').forEach(el => {
-            el.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        });
-        
-        // Simulate network delay
-        setTimeout(() => {
-            const data = timeRangeData[timeRange];
-            
-            // Update total stock
-            document.getElementById('total-stock').textContent = numberWithCommas(data.totalStock);
-            updateTrend('total-stock-trend', data.totalStockTrend);
-            
-            // Update warehouse outflow
-            document.getElementById('warehouse-outflow').textContent = numberWithCommas(data.warehouseOutflow);
-            updateTrend('warehouse-outflow-trend', data.warehouseOutflowTrend);
-            
-            // Update delivered items
-            document.getElementById('delivered-items').textContent = numberWithCommas(data.deliveredItems);
-            updateTrend('delivered-items-trend', data.deliveredItemsTrend);
-            
-            // Update revenue
-            document.getElementById('total-revenue').textContent = '$' + numberWithCommas(data.totalRevenue);
-            updateTrend('total-revenue-trend', data.totalRevenueTrend);
-            
-        }, 500);
-    }
-    
-    // Helper function to update trend indicators
-    function updateTrend(elementId, trendValue) {
-        const element = document.getElementById(elementId);
-        const prefix = trendValue >= 0 ? '+' : '';
-        const iconClass = trendValue >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
-        const bgColorClass = trendValue >= 0 
-            ? 'background-color: rgba(16, 185, 129, 0.15); color: #10B981;'
-            : 'background-color: rgba(239, 68, 68, 0.15); color: #EF4444;';
-        
-        element.innerHTML = `${prefix}${trendValue}% <i class="fas ${iconClass}" style="margin-left: 4px;"></i>`;
-        element.setAttribute('style', `display: flex; align-items: center; ${bgColorClass} padding: 4px 8px; border-radius: 20px; font-size: 0.875rem;`);
-    }
-    
-    // Helper function to format numbers with commas
-    function numberWithCommas(x) {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
-    
-    // Initialize with the selected time range
-    updateDashboardStats(timeRangeSelector.value);
 });
 </script>
 

@@ -1,16 +1,130 @@
 <?php
 require_once '../../includes/auth/auth_check.php';
+require_once '../../includes/config/database.php';
 checkAuth('admin');
 
 $page_title = "Inventory Management";
+
+// Handle POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        if (isset($_POST['action'])) {
+            if ($_POST['action'] === 'add') {
+                // Add new item
+                $stmt = $conn->prepare("INSERT INTO products (name, category_id, price, stock) VALUES (?, ?, ?, ?)");
+                $stmt->execute([
+                    $_POST['item_name'],
+                    $_POST['category'],
+                    $_POST['price'],
+                    $_POST['stock']
+                ]);
+                
+                // Log activity
+                $stmt = $conn->prepare("INSERT INTO activity_log (user_id, description, action) VALUES (?, ?, ?)");
+                $stmt->execute([
+                    $_SESSION['user_id'],
+                    "Added new product: " . $_POST['item_name'],
+                    "add_product"
+                ]);
+                
+                $_SESSION['success_message'] = "Product added successfully!";
+            } elseif ($_POST['action'] === 'edit') {
+                // Update existing item
+                $stmt = $conn->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, stock = ? WHERE id = ?");
+                $stmt->execute([
+                    $_POST['item_name'],
+                    $_POST['category'],
+                    $_POST['price'],
+                    $_POST['stock'],
+                    $_POST['item_id']
+                ]);
+                
+                // Log activity
+                $stmt = $conn->prepare("INSERT INTO activity_log (user_id, description, action) VALUES (?, ?, ?)");
+                $stmt->execute([
+                    $_SESSION['user_id'],
+                    "Updated product ID: " . $_POST['item_id'],
+                    "update_product"
+                ]);
+                
+                $_SESSION['success_message'] = "Product updated successfully!";
+            } elseif ($_POST['action'] === 'delete') {
+                // Delete item
+                $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
+                $stmt->execute([$_POST['item_id']]);
+                
+                // Log activity
+                $stmt = $conn->prepare("INSERT INTO activity_log (user_id, description, action) VALUES (?, ?, ?)");
+                $stmt->execute([
+                    $_SESSION['user_id'],
+                    "Deleted product ID: " . $_POST['item_id'],
+                    "delete_product"
+                ]);
+                
+                $_SESSION['success_message'] = "Product deleted successfully!";
+            }
+        }
+    } catch (PDOException $e) {
+        $_SESSION['error_message'] = "Error: " . $e->getMessage();
+    }
+    
+    // Redirect to prevent form resubmission
+    header("Location: inventory.php");
+    exit();
+}
 
 // Search functionality
 $search_query = isset($_GET['search']) ? $_GET['search'] : '';
 $category_filter = isset($_GET['category']) ? $_GET['category'] : '';
 $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
 
+// Fetch categories for dropdown
+$categories = $conn->query("SELECT * FROM categories ORDER BY name")->fetchAll();
+
+// Fetch products with category names
+$query = "SELECT p.*, c.name as category_name 
+          FROM products p 
+          LEFT JOIN categories c ON p.category_id = c.id 
+          WHERE 1=1";
+
+$params = [];
+
+if (!empty($search_query)) {
+    $query .= " AND p.name LIKE ?";
+    $params[] = "%$search_query%";
+}
+
+if (!empty($category_filter)) {
+    $query .= " AND p.category_id = ?";
+    $params[] = $category_filter;
+}
+
+$query .= " ORDER BY p.name";
+
+$stmt = $conn->prepare($query);
+$stmt->execute($params);
+$products = $stmt->fetchAll();
+
 include '../../layouts/header.php';
 ?>
+
+<?php if (isset($_SESSION['success_message'])): ?>
+    <div class="alert alert-success">
+        <?php 
+        echo $_SESSION['success_message'];
+        unset($_SESSION['success_message']);
+        ?>
+    </div>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['error_message'])): ?>
+    <div class="alert alert-danger">
+        <?php 
+        echo $_SESSION['error_message'];
+        unset($_SESSION['error_message']);
+        ?>
+    </div>
+<?php endif; ?>
 
 <div style="display: flex; flex-direction: column; min-height: calc(100vh - 80px);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -31,10 +145,11 @@ include '../../layouts/header.php';
                 </div>
                 <select name="category" class="select-control" style="width: 150px; background-color: white; color: black;">
                     <option value="">All Categories</option>
-                    <option value="Shirts" <?php echo $category_filter === 'Shirts' ? 'selected' : ''; ?>>Shirts</option>
-                    <option value="Pants" <?php echo $category_filter === 'Pants' ? 'selected' : ''; ?>>Pants</option>
-                    <option value="Outerwear" <?php echo $category_filter === 'Outerwear' ? 'selected' : ''; ?>>Outerwear</option>
-                    <option value="Accessories" <?php echo $category_filter === 'Accessories' ? 'selected' : ''; ?>>Accessories</option>
+                    <?php foreach ($categories as $category): ?>
+                        <option value="<?php echo $category['id']; ?>" <?php echo $category_filter == $category['id'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($category['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
                 <select name="status" class="select-control" style="width: 150px; background-color: white; color: black;">
                     <option value="">All Status</option>
@@ -62,47 +177,27 @@ include '../../layouts/header.php';
                     </tr>
                 </thead>
                 <tbody>
-                    <?php
-                    // Mock inventory data
-                    $inventory = [
-                        ['id' => '#001', 'name' => 'T-Shirt Basic', 'category' => 'Shirts', 'price' => '$19.99', 'stock' => 250, 'status' => 'in_stock'],
-                        ['id' => '#002', 'name' => 'Denim Jeans', 'category' => 'Pants', 'price' => '$49.99', 'stock' => 15, 'status' => 'low_stock'],
-                        ['id' => '#003', 'name' => 'Cotton Hoodie', 'category' => 'Outerwear', 'price' => '$39.99', 'stock' => 78, 'status' => 'in_stock'],
-                        ['id' => '#004', 'name' => 'Polo Shirt', 'category' => 'Shirts', 'price' => '$24.99', 'stock' => 120, 'status' => 'in_stock'],
-                        ['id' => '#005', 'name' => 'Casual Shorts', 'category' => 'Pants', 'price' => '$29.99', 'stock' => 85, 'status' => 'in_stock'],
-                        ['id' => '#006', 'name' => 'Winter Jacket', 'category' => 'Outerwear', 'price' => '$89.99', 'stock' => 0, 'status' => 'out_of_stock']
-                    ];
-                    
-                    // Filter inventory based on search parameters
-                    $filtered_inventory = array_filter($inventory, function($item) use ($search_query, $category_filter, $status_filter) {
-                        $search_match = empty($search_query) || stripos($item['name'], $search_query) !== false;
-                        $category_match = empty($category_filter) || $item['category'] === $category_filter;
-                        $status_match = empty($status_filter) || $item['status'] === $status_filter;
-                        return $search_match && $category_match && $status_match;
-                    });
-                    
-                    foreach ($filtered_inventory as $item):
-                        $item_id = substr($item['id'], 1); // Remove the # from ID
+                    <?php foreach ($products as $product):
                         $status_class = 'success';
                         $status_text = 'In Stock';
                         
-                        if ($item['status'] === 'low_stock') {
-                            $status_class = 'warning';
-                            $status_text = 'Low Stock';
-                        } elseif ($item['status'] === 'out_of_stock') {
+                        if ($product['stock'] <= 0) {
                             $status_class = 'danger';
                             $status_text = 'Out of Stock';
+                        } elseif ($product['stock'] <= 10) {
+                            $status_class = 'warning';
+                            $status_text = 'Low Stock';
                         }
                     ?>
                     <tr>
-                        <td><?php echo $item['id']; ?></td>
-                        <td><?php echo $item['name']; ?></td>
-                        <td><?php echo $item['category']; ?></td>
-                        <td><?php echo $item['price']; ?></td>
-                        <td><?php echo $item['stock']; ?></td>
+                        <td>#<?php echo str_pad($product['id'], 3, '0', STR_PAD_LEFT); ?></td>
+                        <td><?php echo htmlspecialchars($product['name']); ?></td>
+                        <td><?php echo htmlspecialchars($product['category_name']); ?></td>
+                        <td>₱<?php echo number_format($product['price'], 2); ?></td>
+                        <td><?php echo $product['stock']; ?></td>
                         <td><span class="badge badge-<?php echo $status_class; ?>"><?php echo $status_text; ?></span></td>
                         <td>
-                            <button class="btn btn-sm" onclick="openEditModal('<?php echo $item_id; ?>', '<?php echo $item['name']; ?>', '<?php echo $item['category']; ?>', '<?php echo substr($item['price'], 1); ?>', '<?php echo $item['stock']; ?>')">
+                            <button class="btn btn-sm" onclick="openEditModal('<?php echo $product['id']; ?>', '<?php echo htmlspecialchars($product['name']); ?>', '<?php echo $product['category_id']; ?>', '<?php echo $product['price']; ?>', '<?php echo $product['stock']; ?>')">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
                         </td>
@@ -114,15 +209,7 @@ include '../../layouts/header.php';
         
         <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
-                <span style="color: var(--text-secondary);">Showing <?php echo count($filtered_inventory); ?> of <?php echo count($inventory); ?> items</span>
-            </div>
-            <div class="pagination" style="display: flex; gap: 0.5rem;">
-                <a href="#" class="btn btn-sm">Previous</a>
-                <a href="#" class="btn btn-sm" style="background-color: rgba(108, 99, 255, 0.2);">1</a>
-                <a href="#" class="btn btn-sm">2</a>
-                <a href="#" class="btn btn-sm">3</a>
-                <a href="#" class="btn btn-sm">4</a>
-                <a href="#" class="btn btn-sm">Next</a>
+                <span style="color: var(--text-secondary);">Showing <?php echo count($products); ?> items</span>
             </div>
         </div>
     </div>
@@ -139,6 +226,8 @@ include '../../layouts/header.php';
         </div>
         
         <form id="addItemForm" method="POST" action="inventory.php" class="item-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <input type="hidden" name="action" value="add">
+            
             <div class="form-row">
                 <label for="add_item_name">Item Name</label>
                 <input type="text" id="add_item_name" name="item_name" class="form-control" required>
@@ -148,15 +237,14 @@ include '../../layouts/header.php';
                 <label for="add_category">Category</label>
                 <select id="add_category" name="category" class="select-control" required>
                     <option value="">Select Category</option>
-                    <option value="Shirts">Shirts</option>
-                    <option value="Pants">Pants</option>
-                    <option value="Outerwear">Outerwear</option>
-                    <option value="Accessories">Accessories</option>
+                    <?php foreach ($categories as $category): ?>
+                        <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             
             <div class="form-row">
-                <label for="add_price">Price ($)</label>
+                <label for="add_price">Price (₱)</label>
                 <input type="number" id="add_price" name="price" class="form-control" step="0.01" min="0" required>
             </div>
             
@@ -188,6 +276,7 @@ include '../../layouts/header.php';
         </div>
         
         <form id="editItemForm" method="POST" action="inventory.php" class="item-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <input type="hidden" name="action" value="edit">
             <input type="hidden" id="edit_item_id" name="item_id">
             
             <div class="form-row">
@@ -199,15 +288,14 @@ include '../../layouts/header.php';
                 <label for="edit_category">Category</label>
                 <select id="edit_category" name="category" class="select-control" required>
                     <option value="">Select Category</option>
-                    <option value="Shirts">Shirts</option>
-                    <option value="Pants">Pants</option>
-                    <option value="Outerwear">Outerwear</option>
-                    <option value="Accessories">Accessories</option>
+                    <?php foreach ($categories as $category): ?>
+                        <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             
             <div class="form-row">
-                <label for="edit_price">Price ($)</label>
+                <label for="edit_price">Price (₱)</label>
                 <input type="number" id="edit_price" name="price" class="form-control" step="0.01" min="0" required>
             </div>
             
@@ -217,7 +305,7 @@ include '../../layouts/header.php';
             </div>
             
             <div style="grid-column: 1 / -1; margin-top: 1rem; display: flex; justify-content: space-between;">
-                <button type="button" class="btn btn-sm" style="background-color: rgba(255, 82, 82, 0.1); color: var(--danger-color);">
+                <button type="button" class="btn btn-sm" onclick="deleteItem()" style="background-color: rgba(255, 82, 82, 0.1); color: var(--danger-color);">
                     <i class="fas fa-trash"></i> Delete Item
                 </button>
                 
@@ -251,6 +339,29 @@ include '../../layouts/header.php';
     
     function closeModal(modalId) {
         document.getElementById(modalId).style.display = 'none';
+    }
+    
+    function deleteItem() {
+        if (confirm('Are you sure you want to delete this item?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'inventory.php';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'delete';
+            
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'item_id';
+            idInput.value = document.getElementById('edit_item_id').value;
+            
+            form.appendChild(actionInput);
+            form.appendChild(idInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
     }
     
     // Close modal when clicking outside the modal content

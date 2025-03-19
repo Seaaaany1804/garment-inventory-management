@@ -1,6 +1,7 @@
 
 UI
 - alert for Product Added Successfully
+- redesign dashboard for staff
 
 Test
 - filter functions

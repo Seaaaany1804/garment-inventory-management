@@ -28,10 +28,12 @@ $recent_orders = $conn->query("
         o.status,
         o.total_amount,
         c.name as customer_name,
-        COUNT(oi.id) as item_count
+        SUM(oi.quantity) as total_quantity,
+        GROUP_CONCAT(p.name SEPARATOR ', ') as product_names
     FROM orders o
     LEFT JOIN customers c ON o.customer_id = c.id
     LEFT JOIN order_items oi ON o.id = oi.order_id
+    LEFT JOIN products p ON oi.product_id = p.id
     GROUP BY o.id
     ORDER BY o.created_at DESC
     LIMIT 10
@@ -72,6 +74,7 @@ include '../../layouts/header.php';
                     <th>Date</th>
                     <th>Customer</th>
                     <th>Items</th>
+                    <th>Products</th>
                     <th>Total Amount</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -90,7 +93,8 @@ include '../../layouts/header.php';
                     <td>#<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></td>
                     <td><?php echo date('M d, Y', strtotime($order['created_at'])); ?></td>
                     <td><?php echo htmlspecialchars($order['customer_name']); ?></td>
-                    <td><?php echo $order['item_count']; ?></td>
+                    <td><?php echo $order['total_quantity'] ?? 0; ?></td>
+                    <td><?php echo htmlspecialchars($order['product_names']); ?></td>
                     <td>₱<?php echo number_format($order['total_amount'], 2); ?></td>
                     <td><span class="badge badge-<?php echo $status_class; ?>"><?php echo ucfirst($order['status']); ?></span></td>
                     <td><a href="orders.php?id=<?php echo $order['id']; ?>" class="btn btn-sm">View</a></td>

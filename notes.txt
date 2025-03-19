@@ -5,5 +5,5 @@ UI
 Test
 - filter functions
 
-Changes
-- should not create order when no stock or will result to negative stock
+Issues
+- inventory item can't be deleted if an order is created, find a fix

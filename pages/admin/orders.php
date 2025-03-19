@@ -9,86 +9,243 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once '../../includes/auth/auth_check.php';
+require_once '../../includes/config/database.php';
 checkAuth('admin');
 
 $pageTitle = "Order Management";
-include '../../layouts/header.php';
 
-// Sample filter state - in a real app, this would come from a database query
+// Handle individual order view if ID is provided
+if (isset($_GET['id'])) {
+    $orderId = $_GET['id'];
+    
+    // Fetch order details
+    $stmt = $conn->prepare("
+        SELECT 
+            o.id,
+            o.created_at,
+            o.status,
+            o.total_amount,
+            c.name as customer_name,
+            c.phone as customer_phone,
+            c.address as customer_address
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        WHERE o.id = ?
+    ");
+    $stmt->execute([$orderId]);
+    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$order) {
+        // Order not found, redirect back to orders page
+        header('Location: orders.php');
+        exit;
+    }
+    
+    // Fetch order items with product details
+    $stmt = $conn->prepare("
+        SELECT 
+            oi.id,
+            oi.quantity,
+            oi.unit_price,
+            oi.total_price,
+            p.name as product_name
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ?
+    ");
+    $stmt->execute([$orderId]);
+    $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    include '../../layouts/header.php';
+    ?>
+    
+    <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0; color: #e2e8f0;"><?php echo $pageTitle; ?> - Order #<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></h1>
+        <a href="orders.php" class="btn" style="padding: 8px 16px; background-color: #374151; color: #e2e8f0; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+    
+    <div class="card" style="border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); overflow: hidden; margin-bottom: 20px; padding: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 15px; color: #e2e8f0;">Order Information</h3>
+                <div style="margin-bottom: 10px;">
+                    <span style="color: #9ca3af; display: block; margin-bottom: 5px;">Order ID:</span>
+                    <span style="color: #e2e8f0; font-weight: 500;">#<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <span style="color: #9ca3af; display: block; margin-bottom: 5px;">Date:</span>
+                    <span style="color: #e2e8f0;"><?php echo date('F d, Y', strtotime($order['created_at'])); ?></span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <span style="color: #9ca3af; display: block; margin-bottom: 5px;">Status:</span>
+                    <?php
+                    $statusColor = '';
+                    $statusBg = '';
+                    switch ($order['status']) {
+                        case 'pending':
+                            $statusColor = '#F97316';
+                            $statusBg = 'rgba(249, 115, 22, 0.1)';
+                            break;
+                        case 'shipped':
+                            $statusColor = '#0EA5E9';
+                            $statusBg = 'rgba(14, 165, 233, 0.1)';
+                            break;
+                        case 'delivered':
+                            $statusColor = '#10B981';
+                            $statusBg = 'rgba(16, 185, 129, 0.1)';
+                            break;
+                    }
+                    ?>
+                    <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.875rem; background-color: <?php echo $statusBg; ?>; color: <?php echo $statusColor; ?>; font-weight: 500; text-transform: capitalize;">
+                        <?php echo $order['status']; ?>
+                    </span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <span style="color: #9ca3af; display: block; margin-bottom: 5px;">Total Amount:</span>
+                    <span style="color: #e2e8f0; font-weight: 600; font-size: 1.25rem;">₱<?php echo number_format($order['total_amount'], 2); ?></span>
+                </div>
+            </div>
+            
+            <div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 15px; color: #e2e8f0;">Customer Information</h3>
+                <div style="margin-bottom: 10px;">
+                    <span style="color: #9ca3af; display: block; margin-bottom: 5px;">Name:</span>
+                    <span style="color: #e2e8f0;"><?php echo htmlspecialchars($order['customer_name']); ?></span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <span style="color: #9ca3af; display: block; margin-bottom: 5px;">Phone:</span>
+                    <span style="color: #e2e8f0;"><?php echo htmlspecialchars($order['customer_phone'] ?? 'N/A'); ?></span>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <span style="color: #9ca3af; display: block; margin-bottom: 5px;">Address:</span>
+                    <span style="color: #e2e8f0;"><?php echo htmlspecialchars($order['customer_address'] ?? 'N/A'); ?></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card" style="border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); overflow: hidden; margin-bottom: 20px;">
+        <h3 style="font-size: 1.25rem; padding: 15px 20px; margin: 0; border-bottom: 1px solid #374151; color: #e2e8f0;">Order Items</h3>
+        <div class="table-container" style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background-color: #111827; text-align: left;">
+                        <th style="padding: 12px 16px; color: #9ca3af; font-weight: 500; border-bottom: 1px solid #374151;">Product</th>
+                        <th style="padding: 12px 16px; color: #9ca3af; font-weight: 500; border-bottom: 1px solid #374151;">Quantity</th>
+                        <th style="padding: 12px 16px; color: #9ca3af; font-weight: 500; border-bottom: 1px solid #374151;">Unit Price</th>
+                        <th style="padding: 12px 16px; color: #9ca3af; font-weight: 500; border-bottom: 1px solid #374151;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($orderItems as $item): ?>
+                    <tr style="border-bottom: 1px solid #374151;">
+                        <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo htmlspecialchars($item['product_name']); ?></td>
+                        <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo $item['quantity']; ?></td>
+                        <td style="padding: 12px 16px; color: #e2e8f0;">₱<?php echo number_format($item['unit_price'], 2); ?></td>
+                        <td style="padding: 12px 16px; color: #e2e8f0;">₱<?php echo number_format($item['total_price'], 2); ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr style="background-color: rgba(17, 24, 39, 0.5);">
+                        <td colspan="3" style="padding: 12px 16px; text-align: right; font-weight: 600; color: #e2e8f0;">Total</td>
+                        <td style="padding: 12px 16px; color: #e2e8f0; font-weight: 600;">₱<?php echo number_format($order['total_amount'], 2); ?></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    
+    <?php
+    // Action buttons for updating order status
+    if ($order['status'] !== 'delivered') {
+        ?>
+        <div class="card" style="border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); overflow: hidden; margin-bottom: 20px; padding: 20px;">
+            <h3 style="font-size: 1.25rem; margin-bottom: 15px; color: #e2e8f0;">Update Order Status</h3>
+            <div style="display: flex; gap: 10px;">
+                <?php if ($order['status'] === 'pending'): ?>
+                <form method="post" action="update_order_status.php">
+                    <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                    <input type="hidden" name="status" value="shipped">
+                    <button type="submit" style="padding: 8px 16px; background-color: #0EA5E9; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        Mark as Shipped
+                    </button>
+                </form>
+                <?php endif; ?>
+                
+                <?php if ($order['status'] === 'shipped'): ?>
+                <form method="post" action="update_order_status.php">
+                    <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                    <input type="hidden" name="status" value="delivered">
+                    <button type="submit" style="padding: 8px 16px; background-color: #10B981; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        Mark as Delivered
+                    </button>
+                </form>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php
+    }
+    
+    include '../../layouts/footer.php';
+    exit; // End processing here for individual order view
+}
+
+// Filter settings
 $statusFilter = isset($_GET['status']) ? $_GET['status'] : 'all';
 
-// Sample orders data - in a real app, this would come from a database
-$orders = [
-    [
-        'id' => 'ORD-2024-001',
-        'customer' => 'John Smith',
-        'date' => '2024-03-18',
-        'total' => 245.50,
-        'items' => 3,
-        'status' => 'pending',
-        'payment' => 'Credit Card'
-    ],
-    [
-        'id' => 'ORD-2024-002',
-        'customer' => 'Jane Doe',
-        'date' => '2024-03-17',
-        'total' => 120.75,
-        'items' => 2,
-        'status' => 'shipped',
-        'payment' => 'PayPal'
-    ],
-    [
-        'id' => 'ORD-2024-003',
-        'customer' => 'Robert Johnson',
-        'date' => '2024-03-15',
-        'total' => 540.00,
-        'items' => 5,
-        'status' => 'delivered',
-        'payment' => 'Credit Card'
-    ],
-    [
-        'id' => 'ORD-2024-005',
-        'customer' => 'Michael Brown',
-        'date' => '2024-03-12',
-        'total' => 315.80,
-        'items' => 4,
-        'status' => 'pending',
-        'payment' => 'Credit Card'
-    ],
-    [
-        'id' => 'ORD-2024-006',
-        'customer' => 'Emily Davis',
-        'date' => '2024-03-10',
-        'total' => 180.00,
-        'items' => 2,
-        'status' => 'shipped',
-        'payment' => 'PayPal'
-    ],
-    [
-        'id' => 'ORD-2024-007',
-        'customer' => 'David Miller',
-        'date' => '2024-03-08',
-        'total' => 420.50,
-        'items' => 3,
-        'status' => 'delivered',
-        'payment' => 'Credit Card'
-    ]
-];
-
-// Filter orders based on status if a filter is set
-if ($statusFilter !== 'all') {
-    $orders = array_filter($orders, function($order) use ($statusFilter) {
-        return $order['status'] === $statusFilter;
-    });
+// Fetch orders with customer details and item count
+if ($statusFilter === 'all') {
+    $stmt = $conn->query("
+        SELECT 
+            o.id,
+            o.created_at,
+            o.status,
+            o.total_amount,
+            c.name as customer_name,
+            SUM(oi.quantity) as total_quantity,
+            GROUP_CONCAT(p.name SEPARATOR ', ') as product_names
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        LEFT JOIN products p ON oi.product_id = p.id
+        GROUP BY o.id
+        ORDER BY o.created_at DESC
+    ");
+} else {
+    $stmt = $conn->prepare("
+        SELECT 
+            o.id,
+            o.created_at,
+            o.status,
+            o.total_amount,
+            c.name as customer_name,
+            SUM(oi.quantity) as total_quantity,
+            GROUP_CONCAT(p.name SEPARATOR ', ') as product_names
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        LEFT JOIN products p ON oi.product_id = p.id
+        WHERE o.status = ?
+        GROUP BY o.id
+        ORDER BY o.created_at DESC
+    ");
+    $stmt->execute([$statusFilter]);
 }
+
+$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get counts for each status
 $counts = [
-    'all' => count($orders),
-    'pending' => count(array_filter($orders, function($order) { return $order['status'] === 'pending'; })),
-    'shipped' => count(array_filter($orders, function($order) { return $order['status'] === 'shipped'; })),
-    'delivered' => count(array_filter($orders, function($order) { return $order['status'] === 'delivered'; }))
+    'all' => $conn->query("SELECT COUNT(*) FROM orders")->fetchColumn(),
+    'pending' => $conn->query("SELECT COUNT(*) FROM orders WHERE status = 'pending'")->fetchColumn(),
+    'shipped' => $conn->query("SELECT COUNT(*) FROM orders WHERE status = 'shipped'")->fetchColumn(),
+    'delivered' => $conn->query("SELECT COUNT(*) FROM orders WHERE status = 'delivered'")->fetchColumn()
 ];
+
+include '../../layouts/header.php';
 ?>
 
 <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
@@ -133,324 +290,69 @@ $counts = [
                         <th style="padding: 12px 16px; color: #9ca3af; font-weight: 500; border-bottom: 1px solid #374151;">Date</th>
                         <th style="padding: 12px 16px; color: #9ca3af; font-weight: 500; border-bottom: 1px solid #374151;">Total</th>
                         <th style="padding: 12px 16px; color: #9ca3af; font-weight: 500; border-bottom: 1px solid #374151;">Items</th>
+                        <th style="padding: 12px 16px; color: #9ca3af; font-weight: 500; border-bottom: 1px solid #374151;">Products</th>
                         <th style="padding: 12px 16px; color: #9ca3af; font-weight: 500; border-bottom: 1px solid #374151;">Status</th>
                         <th style="padding: 12px 16px; color: #9ca3af; font-weight: 500; border-bottom: 1px solid #374151;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($orders as $order): ?>
-                    <tr style="border-bottom: 1px solid #374151;">
-                        <td style="padding: 12px 16px; color: #e2e8f0;">
-                            <span style="font-weight: 500;"><?php echo $order['id']; ?></span>
-                        </td>
-                        <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo $order['customer']; ?></td>
-                        <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo date('M d, Y', strtotime($order['date'])); ?></td>
-                        <td style="padding: 12px 16px; color: #e2e8f0;">₱<?php echo number_format($order['total'], 2); ?></td>
-                        <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo $order['items']; ?></td>
-                        <td style="padding: 12px 16px;">
-                            <?php
-                            $statusColor = '';
-                            $statusBg = '';
-                            switch ($order['status']) {
-                                case 'pending':
-                                    $statusColor = '#F97316';
-                                    $statusBg = 'rgba(249, 115, 22, 0.1)';
-                                    break;
-                                case 'shipped':
-                                    $statusColor = '#0EA5E9';
-                                    $statusBg = 'rgba(14, 165, 233, 0.1)';
-                                    break;
-                                case 'delivered':
-                                    $statusColor = '#10B981';
-                                    $statusBg = 'rgba(16, 185, 129, 0.1)';
-                                    break;
-                            }
-                            ?>
-                            <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background-color: <?php echo $statusBg; ?>; color: <?php echo $statusColor; ?>; font-weight: 500; text-transform: capitalize;">
-                                <?php echo $order['status']; ?>
-                            </span>
-                        </td>
-                        <td style="padding: 12px 16px;">
-                            <button class="view-receipt-btn" data-order-id="<?php echo $order['id']; ?>" style="background: none; border: none; color: #6366F1; cursor: pointer; padding: 8px 12px; border-radius: 6px; background-color: rgba(99, 102, 241, 0.1); font-size: 0.875rem; display: flex; align-items: center; gap: 6px;">
-                                <i class="fas fa-receipt"></i> View Receipt
-                            </button>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
+                    <?php if (count($orders) > 0): ?>
+                        <?php foreach ($orders as $order): 
+                            $status_class = match($order['status']) {
+                                'pending' => 'warning',
+                                'shipped' => 'info',
+                                'delivered' => 'success',
+                                default => 'secondary'
+                            };
+                        ?>
+                        <tr style="border-bottom: 1px solid #374151;">
+                            <td style="padding: 12px 16px; color: #e2e8f0;">
+                                <span style="font-weight: 500;">#<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></span>
+                            </td>
+                            <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo htmlspecialchars($order['customer_name']); ?></td>
+                            <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo date('M d, Y', strtotime($order['created_at'])); ?></td>
+                            <td style="padding: 12px 16px; color: #e2e8f0;">₱<?php echo number_format($order['total_amount'], 2); ?></td>
+                            <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo $order['total_quantity'] ?? 0; ?></td>
+                            <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo htmlspecialchars($order['product_names'] ?? 'N/A'); ?></td>
+                            <td style="padding: 12px 16px;">
+                                <?php
+                                $statusColor = '';
+                                $statusBg = '';
+                                switch ($order['status']) {
+                                    case 'pending':
+                                        $statusColor = '#F97316';
+                                        $statusBg = 'rgba(249, 115, 22, 0.1)';
+                                        break;
+                                    case 'shipped':
+                                        $statusColor = '#0EA5E9';
+                                        $statusBg = 'rgba(14, 165, 233, 0.1)';
+                                        break;
+                                    case 'delivered':
+                                        $statusColor = '#10B981';
+                                        $statusBg = 'rgba(16, 185, 129, 0.1)';
+                                        break;
+                                }
+                                ?>
+                                <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background-color: <?php echo $statusBg; ?>; color: <?php echo $statusColor; ?>; font-weight: 500; text-transform: capitalize;">
+                                    <?php echo $order['status']; ?>
+                                </span>
+                            </td>
+                            <td style="padding: 12px 16px;">
+                                <a href="?id=<?php echo $order['id']; ?>" style="background: none; border: none; color: #6366F1; cursor: pointer; padding: 8px 12px; border-radius: 6px; background-color: rgba(99, 102, 241, 0.1); font-size: 0.875rem; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7" style="padding: 20px; text-align: center; color: #9ca3af;">No orders found</td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
-<!-- Order Receipt Modal -->
-<div id="receipt-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;">
-    <div class="modal-content" style="background-color: #1e293b; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; padding: 0;">
-        <div class="modal-header" style="padding: 16px 24px; border-bottom: 1px solid #374151; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0; color: #e2e8f0; font-size: 1.25rem; font-weight: 600;">Order Receipt</h3>
-            <button id="close-modal" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1.25rem; padding: 4px;">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body" style="padding: 24px;">
-            <div id="receipt-content">
-                <!-- Receipt content will be loaded here -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Sample receipt data - in a real app, this would come from an AJAX call
-    const receiptData = {
-        'ORD-2024-001': {
-            orderId: 'ORD-2024-001',
-            date: 'Mar 18, 2024',
-            customer: {
-                name: 'John Smith',
-                email: 'john.smith@example.com',
-                address: '123 Main St, Anytown, USA 12345'
-            },
-            items: [
-                { name: 'Premium T-Shirt', quantity: 1, price: 29.99 },
-                { name: 'Designer Jeans', quantity: 1, price: 89.99 },
-                { name: 'Cotton Hoodie', quantity: 1, price: 59.99 }
-            ],
-            subtotal: 179.97,
-            shipping: 15.53,
-            tax: 50.00,
-            total: 245.50,
-            payment: 'Credit Card',
-            status: 'pending'
-        },
-        'ORD-2024-002': {
-            orderId: 'ORD-2024-002',
-            date: 'Mar 17, 2024',
-            customer: {
-                name: 'Jane Doe',
-                email: 'jane.doe@example.com',
-                address: '456 Oak Ave, Somewhere, USA 67890'
-            },
-            items: [
-                { name: 'Summer Dress', quantity: 1, price: 79.99 },
-                { name: 'Leather Belt', quantity: 1, price: 24.99 }
-            ],
-            subtotal: 104.98,
-            shipping: 7.77,
-            tax: 8.00,
-            total: 120.75,
-            payment: 'PayPal',
-            status: 'shipped'
-        },
-        'ORD-2024-003': {
-            orderId: 'ORD-2024-003',
-            date: 'Mar 15, 2024',
-            customer: {
-                name: 'Robert Johnson',
-                email: 'robert.johnson@example.com',
-                address: '789 Pine Rd, Elsewhere, USA 54321'
-            },
-            items: [
-                { name: 'Winter Jacket', quantity: 1, price: 199.99 },
-                { name: 'Wool Scarf', quantity: 2, price: 45.00 },
-                { name: 'Thermal Gloves', quantity: 1, price: 35.00 },
-                { name: 'Beanie Hat', quantity: 1, price: 25.00 }
-            ],
-            subtotal: 349.99,
-            shipping: 135.01,
-            tax: 55.00,
-            total: 540.00,
-            payment: 'Credit Card',
-            status: 'delivered'
-        },
-        'ORD-2024-005': {
-            orderId: 'ORD-2024-005',
-            date: 'Mar 12, 2024',
-            customer: {
-                name: 'Michael Brown',
-                email: 'michael.brown@example.com',
-                address: '234 Elm St, Nowhere, USA 98765'
-            },
-            items: [
-                { name: 'Running Shoes', quantity: 1, price: 129.99 },
-                { name: 'Athletic Shorts', quantity: 2, price: 34.99 },
-                { name: 'Sports T-Shirt', quantity: 1, price: 29.99 }
-            ],
-            subtotal: 229.96,
-            shipping: 35.84,
-            tax: 50.00,
-            total: 315.80,
-            payment: 'Credit Card',
-            status: 'pending'
-        },
-        'ORD-2024-006': {
-            orderId: 'ORD-2024-006',
-            date: 'Mar 10, 2024',
-            customer: {
-                name: 'Emily Davis',
-                email: 'emily.davis@example.com',
-                address: '567 Maple Ave, Anyplace, USA 13579'
-            },
-            items: [
-                { name: 'Formal Blouse', quantity: 1, price: 89.99 },
-                { name: 'Pencil Skirt', quantity: 1, price: 69.99 }
-            ],
-            subtotal: 159.98,
-            shipping: 10.02,
-            tax: 10.00,
-            total: 180.00,
-            payment: 'PayPal',
-            status: 'shipped'
-        },
-        'ORD-2024-007': {
-            orderId: 'ORD-2024-007',
-            date: 'Mar 08, 2024',
-            customer: {
-                name: 'David Miller',
-                email: 'david.miller@example.com',
-                address: '890 Cedar Ln, Somewhere Else, USA 24680'
-            },
-            items: [
-                { name: 'Casual Shoes', quantity: 1, price: 89.99 },
-                { name: 'Denim Jacket', quantity: 1, price: 129.99 },
-                { name: 'Graphic T-Shirt', quantity: 2, price: 24.99 }
-            ],
-            subtotal: 269.96,
-            shipping: 90.54,
-            tax: 60.00,
-            total: 420.50,
-            payment: 'Credit Card',
-            status: 'delivered'
-        }
-    };
-    
-    // Receipt Modal Functionality
-    const modal = document.getElementById('receipt-modal');
-    const closeModalBtn = document.getElementById('close-modal');
-    const receiptContent = document.getElementById('receipt-content');
-    
-    // Show modal and load receipt when "View Receipt" button is clicked
-    const viewReceiptBtns = document.querySelectorAll('.view-receipt-btn');
-    viewReceiptBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const orderId = this.getAttribute('data-order-id');
-            const receipt = receiptData[orderId];
-            
-            if (receipt) {
-                // Generate receipt HTML
-                let itemsHtml = '';
-                let itemTotal = 0;
-                
-                receipt.items.forEach(item => {
-                    const itemSubtotal = item.quantity * item.price;
-                    itemTotal += itemSubtotal;
-                    
-                    itemsHtml += `
-                    <tr style="border-bottom: 1px solid #374151;">
-                        <td style="padding: 12px 8px; color: #e2e8f0;">${item.name}</td>
-                        <td style="padding: 12px 8px; color: #e2e8f0; text-align: center;">${item.quantity}</td>
-                        <td style="padding: 12px 8px; color: #e2e8f0; text-align: right;">₱${item.price.toFixed(2)}</td>
-                        <td style="padding: 12px 8px; color: #e2e8f0; text-align: right;">₱${itemSubtotal.toFixed(2)}</td>
-                    </tr>
-                    `;
-                });
-                
-                // Status badge styles
-                let statusColor = '';
-                let statusBg = '';
-                switch (receipt.status) {
-                    case 'pending':
-                        statusColor = '#F97316';
-                        statusBg = 'rgba(249, 115, 22, 0.1)';
-                        break;
-                    case 'shipped':
-                        statusColor = '#0EA5E9';
-                        statusBg = 'rgba(14, 165, 233, 0.1)';
-                        break;
-                    case 'delivered':
-                        statusColor = '#10B981';
-                        statusBg = 'rgba(16, 185, 129, 0.1)';
-                        break;
-                }
-                
-                const receiptHtml = `
-                    <div style="background-color: #111827; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-                            <div>
-                                <h4 style="margin: 0 0 8px 0; color: #e2e8f0; font-size: 1rem;">Order ID:</h4>
-                                <p style="margin: 0; color: #e2e8f0; font-weight: 600;">${receipt.orderId}</p>
-                            </div>
-                            <div>
-                                <h4 style="margin: 0 0 8px 0; color: #e2e8f0; font-size: 1rem;">Date:</h4>
-                                <p style="margin: 0; color: #e2e8f0;">${receipt.date}</p>
-                            </div>
-                            <div>
-                                <h4 style="margin: 0 0 8px 0; color: #e2e8f0; font-size: 1rem;">Status:</h4>
-                                <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background-color: ${statusBg}; color: ${statusColor}; font-weight: 500; text-transform: capitalize;">
-                                    ${receipt.status}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 24px;">
-                        <h4 style="margin: 0 0 12px 0; color: #e2e8f0; font-size: 1rem;">Customer Information</h4>
-                        <p style="margin: 0 0 8px 0; color: #e2e8f0; font-weight: 600;">${receipt.customer.name}</p>
-                        <p style="margin: 0 0 8px 0; color: #9ca3af;">${receipt.customer.email}</p>
-                        <p style="margin: 0; color: #9ca3af; white-space: pre-line;">${receipt.customer.address}</p>
-                    </div>
-                    
-                    <h4 style="margin: 0 0 12px 0; color: #e2e8f0; font-size: 1rem; padding-bottom: 8px; border-bottom: 1px solid #374151;">Order Items</h4>
-                    <div style="margin-bottom: 24px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid #374151;">
-                                    <th style="padding: 12px 8px; text-align: left; color: #9ca3af; font-weight: 500;">Item</th>
-                                    <th style="padding: 12px 8px; text-align: center; color: #9ca3af; font-weight: 500;">Qty</th>
-                                    <th style="padding: 12px 8px; text-align: right; color: #9ca3af; font-weight: 500;">Price</th>
-                                    <th style="padding: 12px 8px; text-align: right; color: #9ca3af; font-weight: 500;">Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${itemsHtml}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div style="background-color: #111827; padding: 20px; border-radius: 8px;">
-                        <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 1.125rem;">
-                            <span style="color: #e2e8f0;">Total:</span>
-                            <span style="color: #e2e8f0;">₱${receipt.total.toFixed(2)}</span>
-                        </div>
-                    </div>
-                `;
-                
-                receiptContent.innerHTML = receiptHtml;
-                modal.style.display = 'flex';
-            }
-        });
-    });
-    
-    // Close modal when "Close" button is clicked
-    closeModalBtn.addEventListener('click', function() {
-        modal.style.display = 'none';
-    });
-    
-    // Close modal when clicking outside
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
-    
-    // Close modal with ESC key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal.style.display === 'flex') {
-            modal.style.display = 'none';
-        }
-    });
-});
-</script>
 
 <?php include '../../layouts/footer.php'; ?>

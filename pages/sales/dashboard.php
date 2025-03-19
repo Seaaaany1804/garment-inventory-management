@@ -42,7 +42,7 @@ $recent_orders = $conn->query("
 include '../../layouts/header.php';
 ?>
 
-<div class="stats-grid">
+<div class="stats-grid" style="margin-top: 40px;">
     <div class="stat-card">
         <h3>Total Orders</h3>
         <div class="value"><?php echo $stats['total_orders']; ?></div>
@@ -81,6 +81,11 @@ include '../../layouts/header.php';
                 </tr>
             </thead>
             <tbody>
+                <?php if (empty($recent_orders)): ?>
+                <tr>
+                    <td colspan="8" class="text-center">No orders available</td>
+                </tr>
+                <?php else: ?>
                 <?php foreach ($recent_orders as $order): 
                     $status_class = match($order['status']) {
                         'pending' => 'warning',
@@ -100,6 +105,7 @@ include '../../layouts/header.php';
                     <td><a href="orders.php?id=<?php echo $order['id']; ?>" class="btn btn-sm">View</a></td>
                 </tr>
                 <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>

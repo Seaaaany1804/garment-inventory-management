@@ -248,10 +248,10 @@ $counts = [
 include '../../layouts/header.php';
 ?>
 
-<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+<div style="margin-bottom: 20px; display: flex; margin-top: 40px; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
     <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0; color: #e2e8f0;"><?php echo $pageTitle; ?></h1>
     
-    <div style="display: flex; gap: 1rem; align-items: center;">
+    <div style="display: flex; gap: 1rem;  align-items: center;">
         <div class="search-container" style="position: relative;">
             <input type="text" placeholder="Search orders..." style="padding: 8px 12px 8px 36px; border-radius: 8px; border: 1px solid #4b5563; background-color: #1f2937; color: #e2e8f0; min-width: 250px;">
             <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>

@@ -140,7 +140,7 @@ include '../../layouts/header.php';
     </div>
 <?php endif; ?>
 
-<div style="display: flex; flex-direction: column; min-height: calc(100vh - 80px);">
+<div style="display: flex; flex-direction: column; min-height: calc(100vh - 80px); margin-top: 40px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1><?php echo $page_title; ?></h1>
         <button class="btn btn-primary" style="width: auto;" onclick="openAddModal()">
@@ -189,6 +189,11 @@ include '../../layouts/header.php';
                     </tr>
                 </thead>
                 <tbody>
+                    <?php if (empty($products)): ?>
+                    <tr>
+                        <td colspan="7" class="text-center">No inventory items found</td>
+                    </tr>
+                    <?php else: ?>
                     <?php foreach ($products as $product):
                         $status_class = 'success';
                         $status_text = 'In Stock';
@@ -215,6 +220,7 @@ include '../../layouts/header.php';
                         </td>
                     </tr>
                     <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

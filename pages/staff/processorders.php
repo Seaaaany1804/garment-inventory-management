@@ -236,7 +236,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include '../../layouts/header.php';
 ?>
 
-<div class="stats-grid">
+<div class="stats-grid" style="margin-top: 40px;">
     <div class="stat-card">
         <h3>Total Orders</h3>
         <div class="value"><?php echo $totalOrders; ?></div>

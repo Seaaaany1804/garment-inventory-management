@@ -164,7 +164,7 @@ include '../../layouts/header.php';
 
     <!-- Search and Filter Section -->
     <form method="GET" action="inventory.php">
-        <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 200px 200px 150px; gap: 1rem; border-radius: 6px;">
+        <div style="margin-bottom: 20px; margin-top: 40px; display: grid; grid-template-columns: 1fr 200px 200px 150px; gap: 1rem; border-radius: 6px;">
             <input type="text" name="search" placeholder="Search products..." class="form-control" style="background-color: white; color: black;" value="<?php echo htmlspecialchars($search_query); ?>">
             <select name="category" class="select-control" style="background-color: white; color: black;">
                 <option value="">All Categories</option>
@@ -188,6 +188,11 @@ include '../../layouts/header.php';
 
     <!-- Products Grid -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <?php if (empty($products)): ?>
+        <div class="col-12 text-center py-5">
+            <h4 class="text-white text-center">No items available yet</h4>
+        </div>
+        <?php else: ?>
         <?php foreach ($products as $product): 
             $status_class = 'success';
             $status_text = 'In Stock';
@@ -231,6 +236,7 @@ include '../../layouts/header.php';
             </div>
         </div>
         <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 </div>
 

@@ -12,7 +12,7 @@ $pageTitle = "Warehouse Dashboard";
 include '../../layouts/header.php';
 ?>
 
-<div class="stats-grid">
+<div class="stats-grid" style="margin-top: 40px;">
     <div class="stat-card">
         <h3>Pending Orders</h3>
         <div class="value">14</div>

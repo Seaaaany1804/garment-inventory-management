@@ -23,10 +23,10 @@ if (!isset($_SESSION['role'])) {
 </head>
 <body>
     <div class="container-fluid">
-        <div class="row">
+        <div class="row vh-100">
             <!-- Sidebar -->
             <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar">
-                <div class="position-sticky">
+                <div class="position-sticky pt-3 h-100">
                     <div class="text-center p-3 mb-3">
                         <h4 class="text-white">Garment Inventory</h4>
                         <p class="text-white-50">Welcome, <?php echo $_SESSION['username']; ?></p>
@@ -87,8 +87,5 @@ if (!isset($_SESSION['role'])) {
             </nav>
 
             <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2"><?php echo isset($pageTitle) ? $pageTitle : 'Garment Inventory Management'; ?></h1>
-                </div>
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 d-flex flex-column min-vh-100">
                 <!-- Content goes below this line --> 

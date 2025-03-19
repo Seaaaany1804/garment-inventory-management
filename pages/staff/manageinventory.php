@@ -111,7 +111,7 @@ include '../../layouts/header.php';
     </div>
 <?php endif; ?>
 
-<div class="stats-grid">
+<div class="stats-grid" style="margin-top: 40px;">
     <div class="stat-card">
         <h3>Total Products</h3>
         <div class="value"><?php echo $totalProducts; ?></div>

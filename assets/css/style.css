@@ -23,6 +23,9 @@ body {
     background-color: var(--background-dark);
     color: var(--text-primary);
     line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .container {
@@ -153,6 +156,11 @@ body {
     background: var(--background-light);
     padding: 2rem;
     border-right: 1px solid rgba(255, 255, 255, 0.1);
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+    height: 100%;
+    overflow-y: auto;
 }
 
 .main-content {
@@ -414,4 +422,13 @@ tr:hover {
     .stats-grid {
         grid-template-columns: 1fr;
     }
+}
+
+html, body {
+    height: 100%;
+    min-height: 100vh;
+}
+
+.container-fluid, .row {
+    min-height: 100vh;
 } 

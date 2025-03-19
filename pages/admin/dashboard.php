@@ -104,11 +104,11 @@ try {
 include '../../layouts/header.php';
 ?>
 
-<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+<div style="margin-bottom: 20px; margin-top: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
     <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0;"><?php echo $pageTitle; ?></h1>
     
     <div style="display: flex; gap: 1rem; align-items: center;">
-        <select id="time-range-selector" class="select-control" style="min-width: 150px; padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; background-color: #fff;">
+        <select id="time-range-selector" class="select-control" style="min-width: 150px; padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc;">
             <option value="this_month" <?php echo $timeRange == 'this_month' ? 'selected' : ''; ?>>This Month</option>
             <option value="last_month" <?php echo $timeRange == 'last_month' ? 'selected' : ''; ?>>Last Month</option>
             <option value="last_3_months" <?php echo $timeRange == 'last_3_months' ? 'selected' : ''; ?>>Last 3 Months</option>
@@ -225,6 +225,11 @@ include '../../layouts/header.php';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php if (empty($recentStock)): ?>
+                        <tr>
+                            <td colspan="4" class="text-center">No recently added stock items</td>
+                        </tr>
+                        <?php else: ?>
                         <?php foreach ($recentStock as $item): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($item['product_name']); ?></td>
@@ -233,6 +238,7 @@ include '../../layouts/header.php';
                             <td><?php echo date('M d, Y', strtotime($item['created_at'])); ?></td>
                         </tr>
                         <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -252,6 +258,11 @@ include '../../layouts/header.php';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php if (empty($lowStock)): ?>
+                        <tr>
+                            <td colspan="3" class="text-center">No low stock items</td>
+                        </tr>
+                        <?php else: ?>
                         <?php foreach ($lowStock as $item): ?>
                         <tr>
                             <td><?php echo htmlspecialchars($item['product_name']); ?></td>
@@ -263,6 +274,7 @@ include '../../layouts/header.php';
                             </td>
                         </tr>
                         <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

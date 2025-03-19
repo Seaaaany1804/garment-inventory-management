@@ -2,6 +2,7 @@
 UI
 - alert for Product Added Successfully
 - redesign dashboard for staff
+- add view function for sales/dashboard
 
 Test
 - filter functions

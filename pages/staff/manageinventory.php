@@ -79,10 +79,7 @@ $stmt = $conn->query("
         p.name AS product_name,
         p.stock,
         p.price,
-        c.name AS category_name,
-        (SELECT SUM(oi.quantity) FROM order_items oi 
-         JOIN orders o ON oi.order_id = o.id 
-         WHERE oi.product_id = p.id AND o.status = 'pending') AS quantity_ordered
+        c.name AS category_name
     FROM 
         products p
     LEFT JOIN 
@@ -152,7 +149,6 @@ include '../../layouts/header.php';
                     <th class="text-white text-center">Category</th>
                     <th class="text-white text-center">Price</th>
                     <th class="text-white text-center">Current Stock</th>
-                    <th class="text-white text-center">Quantity Ordered</th>
                     <th class="text-white text-center">Status</th>
                     <th class="text-white text-center">Actions</th>
                 </tr>
@@ -178,7 +174,6 @@ include '../../layouts/header.php';
                         <td class="text-white text-center"><?php echo htmlspecialchars($product['category_name'] ?? 'Uncategorized'); ?></td>
                         <td class="text-white text-center">₱<?php echo number_format($product['price'], 2); ?></td>
                         <td class="text-white text-center"><?php echo $product['stock']; ?></td>
-                        <td class="text-white text-center"><?php echo $product['quantity_ordered'] ?? 0; ?></td>
                         <td class="text-center"><span class="badge <?php echo $statusClass; ?>"><?php echo $status; ?></span></td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-primary update-stock-btn" 
@@ -194,7 +189,7 @@ include '../../layouts/header.php';
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="8" class="text-center text-white">No products found</td>
+                        <td colspan="7" class="text-center text-white">No products found</td>
                     </tr>
                 <?php endif; ?>
             </tbody>

@@ -99,6 +99,20 @@ if (!empty($category_filter)) {
     $params[] = $category_filter;
 }
 
+if (!empty($status_filter)) {
+    switch ($status_filter) {
+        case 'in_stock':
+            $query .= " AND p.stock > 10";
+            break;
+        case 'low_stock':
+            $query .= " AND p.stock > 0 AND p.stock <= 10";
+            break;
+        case 'out_of_stock':
+            $query .= " AND p.stock <= 0";
+            break;
+    }
+}
+
 $query .= " ORDER BY p.name";
 
 $stmt = $conn->prepare($query);

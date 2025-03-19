@@ -19,17 +19,17 @@ include '../../layouts/header.php';
     </div>
     
     <div class="stat-card">
-        <h3>Processing Orders</h3>
+        <h3>Shipped Orders</h3>
         <div class="value">8</div>
     </div>
     
     <div class="stat-card">
-        <h3>Out For Delivery</h3>
+        <h3>Delivered Orders</h3>
         <div class="value">6</div>
     </div>
     
     <div class="stat-card">
-        <h3>Delivered Today</h3>
+        <h3>Total Orders Today</h3>
         <div class="value">12</div>
     </div>
 </div>

@@ -56,7 +56,7 @@ if (isset($_GET['id'])) {
     $stmt->execute([$orderId]);
     $orderItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    include '../../layouts/header.php';
+include '../../layouts/header.php';
     ?>
     
     <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
@@ -305,45 +305,45 @@ include '../../layouts/header.php';
                                 default => 'secondary'
                             };
                         ?>
-                        <tr style="border-bottom: 1px solid #374151;">
-                            <td style="padding: 12px 16px; color: #e2e8f0;">
+                    <tr style="border-bottom: 1px solid #374151;">
+                        <td style="padding: 12px 16px; color: #e2e8f0;">
                                 <span style="font-weight: 500;">#<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></span>
-                            </td>
+                        </td>
                             <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo htmlspecialchars($order['customer_name']); ?></td>
                             <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo date('M d, Y', strtotime($order['created_at'])); ?></td>
                             <td style="padding: 12px 16px; color: #e2e8f0;">₱<?php echo number_format($order['total_amount'], 2); ?></td>
                             <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo $order['total_quantity'] ?? 0; ?></td>
                             <td style="padding: 12px 16px; color: #e2e8f0;"><?php echo htmlspecialchars($order['product_names'] ?? 'N/A'); ?></td>
-                            <td style="padding: 12px 16px;">
-                                <?php
-                                $statusColor = '';
-                                $statusBg = '';
-                                switch ($order['status']) {
-                                    case 'pending':
-                                        $statusColor = '#F97316';
-                                        $statusBg = 'rgba(249, 115, 22, 0.1)';
-                                        break;
-                                    case 'shipped':
-                                        $statusColor = '#0EA5E9';
-                                        $statusBg = 'rgba(14, 165, 233, 0.1)';
-                                        break;
-                                    case 'delivered':
-                                        $statusColor = '#10B981';
-                                        $statusBg = 'rgba(16, 185, 129, 0.1)';
-                                        break;
-                                }
-                                ?>
-                                <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background-color: <?php echo $statusBg; ?>; color: <?php echo $statusColor; ?>; font-weight: 500; text-transform: capitalize;">
-                                    <?php echo $order['status']; ?>
-                                </span>
-                            </td>
-                            <td style="padding: 12px 16px;">
+                        <td style="padding: 12px 16px;">
+                            <?php
+                            $statusColor = '';
+                            $statusBg = '';
+                            switch ($order['status']) {
+                                case 'pending':
+                                    $statusColor = '#F97316';
+                                    $statusBg = 'rgba(249, 115, 22, 0.1)';
+                                    break;
+                                case 'shipped':
+                                    $statusColor = '#0EA5E9';
+                                    $statusBg = 'rgba(14, 165, 233, 0.1)';
+                                    break;
+                                case 'delivered':
+                                    $statusColor = '#10B981';
+                                    $statusBg = 'rgba(16, 185, 129, 0.1)';
+                                    break;
+                            }
+                            ?>
+                            <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background-color: <?php echo $statusBg; ?>; color: <?php echo $statusColor; ?>; font-weight: 500; text-transform: capitalize;">
+                                <?php echo $order['status']; ?>
+                            </span>
+                        </td>
+                        <td style="padding: 12px 16px;">
                                 <a href="?id=<?php echo $order['id']; ?>" style="background: none; border: none; color: #6366F1; cursor: pointer; padding: 8px 12px; border-radius: 6px; background-color: rgba(99, 102, 241, 0.1); font-size: 0.875rem; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
                                     <i class="fas fa-eye"></i> View Details
                                 </a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
                             <td colspan="7" style="padding: 20px; text-align: center; color: #9ca3af;">No orders found</td>

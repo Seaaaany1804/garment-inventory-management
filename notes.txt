@@ -7,3 +7,4 @@ Test
 
 Issues
 - inventory item can't be deleted if an order is created, find a fix
+- no ways to create or manage categories, add one

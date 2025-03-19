@@ -44,7 +44,7 @@ try {
     // Get warehouse outflow (items shipped)
     $stmt = $conn->prepare("SELECT 
         COUNT(DISTINCT o.id) as total_orders,
-        SUM(oi.quantity) as total_items_shipped
+        COALESCE(SUM(oi.quantity), 0) as total_items_shipped
         FROM orders o
         JOIN order_items oi ON o.id = oi.order_id
         WHERE o.status = 'shipped'
@@ -55,7 +55,7 @@ try {
     // Get delivered items
     $stmt = $conn->prepare("SELECT 
         COUNT(DISTINCT o.id) as total_orders,
-        SUM(oi.quantity) as total_items_delivered
+        COALESCE(SUM(oi.quantity), 0) as total_items_delivered
         FROM orders o
         JOIN order_items oi ON o.id = oi.order_id
         WHERE o.status = 'delivered'
@@ -65,7 +65,7 @@ try {
 
     // Get total revenue
     $stmt = $conn->prepare("SELECT 
-        SUM(total_amount) as total_revenue
+        COALESCE(SUM(total_amount), 0) as total_revenue
         FROM orders
         WHERE status IN ('shipped', 'delivered')
         AND created_at BETWEEN ? AND ?");

@@ -4,3 +4,6 @@ UI
 
 Test
 - filter functions
+
+Changes
+- should not create order when no stock or will result to negative stock

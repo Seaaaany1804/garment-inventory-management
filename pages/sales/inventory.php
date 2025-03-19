@@ -216,6 +216,7 @@ include '../../layouts/header.php';
                         <div class="d-flex justify-content-between align-items-center mt-5">
                             <button type="button" 
                                     class="btn btn-primary <?php echo $product['stock'] <= 0 ? 'disabled' : ''; ?>"
+                                    <?php echo $product['stock'] <= 0 ? 'disabled' : ''; ?>
                                     onclick="createOrder({
                                         id: <?php echo $product['id']; ?>,
                                         name: '<?php echo addslashes(htmlspecialchars($product['name'])); ?>',
@@ -344,6 +345,12 @@ document.addEventListener('DOMContentLoaded', function() {
 function createOrder(product) {
     console.log('createOrder function called with product:', product);
     
+    // Don't proceed if stock is 0
+    if (product.stock <= 0) {
+        alert("Cannot create order for products with zero stock.");
+        return;
+    }
+    
     // Populate modal with product details
     document.getElementById('product_id').value = product.id;
     document.getElementById('modalProductName').textContent = product.name;
@@ -364,10 +371,19 @@ function createOrder(product) {
         // Ensure quantity doesn't exceed stock
         if (parseInt(this.value) > product.stock) {
             this.value = product.stock;
+            alert("Order quantity cannot exceed available stock of " + product.stock + " units.");
         }
         
         if (parseInt(this.value) < 1) {
             this.value = 1;
+        }
+        
+        // Enable/disable the submit button based on quantity validation
+        const submitButton = document.getElementById('confirmOrder');
+        if (parseInt(this.value) > product.stock || parseInt(this.value) < 1) {
+            submitButton.disabled = true;
+        } else {
+            submitButton.disabled = false;
         }
     });
     
@@ -397,6 +413,14 @@ function submitOrderForm(event) {
     event.preventDefault();
     
     const form = document.getElementById('createOrderForm');
+    const quantityInput = document.getElementById('orderQuantity');
+    const maxStock = parseInt(document.getElementById('maxOrder').textContent);
+    
+    // Additional validation before submission
+    if (parseInt(quantityInput.value) > maxStock) {
+        alert("Order quantity cannot exceed available stock of " + maxStock + " units.");
+        return false;
+    }
     
     if (form.checkValidity()) {
         // Disable submit button to prevent double submission

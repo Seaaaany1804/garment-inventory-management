@@ -8,37 +8,58 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once '../../includes/config/database.php';
+
 $pageTitle = "Sales Dashboard";
+
+// Fetch statistics
+$stats = [
+    'total_orders' => $conn->query("SELECT COUNT(*) FROM orders")->fetchColumn(),
+    'pending_orders' => $conn->query("SELECT COUNT(*) FROM orders WHERE status = 'pending'")->fetchColumn(),
+    'delivered_orders' => $conn->query("SELECT COUNT(*) FROM orders WHERE status = 'delivered'")->fetchColumn(),
+    'available_items' => $conn->query("SELECT COUNT(*) FROM products WHERE stock > 0")->fetchColumn()
+];
+
+// Fetch recent orders with customer details and item count
+$recent_orders = $conn->query("
+    SELECT 
+        o.id,
+        o.created_at,
+        o.status,
+        o.total_amount,
+        c.name as customer_name,
+        COUNT(oi.id) as item_count
+    FROM orders o
+    LEFT JOIN customers c ON o.customer_id = c.id
+    LEFT JOIN order_items oi ON o.id = oi.order_id
+    GROUP BY o.id
+    ORDER BY o.created_at DESC
+    LIMIT 10
+")->fetchAll();
+
 include '../../layouts/header.php';
 ?>
 
 <div class="stats-grid">
     <div class="stat-card">
         <h3>Total Orders</h3>
-        <div class="value">87</div>
-        <div class="trend up">+12% <i class="fas fa-arrow-up"></i></div>
+        <div class="value"><?php echo $stats['total_orders']; ?></div>
     </div>
     
     <div class="stat-card">
         <h3>Pending Orders</h3>
-        <div class="value">14</div>
+        <div class="value"><?php echo $stats['pending_orders']; ?></div>
     </div>
     
     <div class="stat-card">
         <h3>Delivered Orders</h3>
-        <div class="value">73</div>
+        <div class="value"><?php echo $stats['delivered_orders']; ?></div>
     </div>
     
     <div class="stat-card">
         <h3>Available Items</h3>
-        <div class="value">1,205</div>
+        <div class="value"><?php echo $stats['available_items']; ?></div>
     </div>
-</div>
-
-<div class="action-buttons" style="margin-bottom: 20px;">
-    <a href="orders.php?action=new" class="btn btn-primary" style="width: auto; margin-right: 10px;">
-        <i class="fas fa-plus"></i> New Order
-    </a>
 </div>
 
 <div class="card">
@@ -51,39 +72,33 @@ include '../../layouts/header.php';
                     <th>Date</th>
                     <th>Customer</th>
                     <th>Items</th>
+                    <th>Total Amount</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
+                <?php foreach ($recent_orders as $order): 
+                    $status_class = match($order['status']) {
+                        'pending' => 'warning',
+                        'shipped' => 'info',
+                        'delivered' => 'success',
+                        default => 'secondary'
+                    };
+                ?>
                 <tr>
-                    <td>#ORD-001</td>
-                    <td>Mar 18, 2024</td>
-                    <td>John Smith</td>
-                    <td>3</td>
-                    <td><span class="badge badge-warning">Pending</span></td>
-                    <td><a href="orders.php?id=ORD-001" class="btn btn-sm">View</a></td>
+                    <td>#<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></td>
+                    <td><?php echo date('M d, Y', strtotime($order['created_at'])); ?></td>
+                    <td><?php echo htmlspecialchars($order['customer_name']); ?></td>
+                    <td><?php echo $order['item_count']; ?></td>
+                    <td>₱<?php echo number_format($order['total_amount'], 2); ?></td>
+                    <td><span class="badge badge-<?php echo $status_class; ?>"><?php echo ucfirst($order['status']); ?></span></td>
+                    <td><a href="orders.php?id=<?php echo $order['id']; ?>" class="btn btn-sm">View</a></td>
                 </tr>
-                <tr>
-                    <td>#ORD-002</td>
-                    <td>Mar 17, 2024</td>
-                    <td>Emma Johnson</td>
-                    <td>5</td>
-                    <td><span class="badge badge-success">Delivered</span></td>
-                    <td><a href="orders.php?id=ORD-002" class="btn btn-sm">View</a></td>
-                </tr>
-                <tr>
-                    <td>#ORD-003</td>
-                    <td>Mar 16, 2024</td>
-                    <td>Michael Brown</td>
-                    <td>2</td>
-                    <td><span class="badge badge-info">In Transit</span></td>
-                    <td><a href="orders.php?id=ORD-003" class="btn btn-sm">View</a></td>
-                </tr>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>
 </div>
-
 
 <?php include '../../layouts/footer.php'; ?> 

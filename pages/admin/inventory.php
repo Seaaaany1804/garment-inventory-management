@@ -153,11 +153,9 @@ include '../../layouts/header.php';
         <h2>Inventory Items</h2>
         
         <form method="GET" action="inventory.php">
-            <div style="margin-bottom: 20px; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: nowrap; padding: 10px; border-radius: 6px;">
-                <div style="flex: 1;">
-                    <input type="text" name="search" placeholder="Search inventory..." class="form-control" style="background-color: white; color: black;" value="<?php echo htmlspecialchars($search_query); ?>">
-                </div>
-                <select name="category" class="select-control" style="width: 150px; background-color: white; color: black;">
+            <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 200px 200px 150px; gap: 1rem; padding: 10px; border-radius: 6px;">
+                <input type="text" name="search" placeholder="Search inventory..." class="form-control" style="background-color: white; color: black;" value="<?php echo htmlspecialchars($search_query); ?>">
+                <select name="category" class="select-control" style="background-color: white; color: black;">
                     <option value="">All Categories</option>
                     <?php foreach ($categories as $category): ?>
                         <option value="<?php echo $category['id']; ?>" <?php echo $category_filter == $category['id'] ? 'selected' : ''; ?>>
@@ -165,7 +163,7 @@ include '../../layouts/header.php';
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <select name="status" class="select-control" style="width: 150px; background-color: white; color: black;">
+                <select name="status" class="select-control" style="background-color: white; color: black;">
                     <option value="">All Status</option>
                     <option value="in_stock" <?php echo $status_filter === 'in_stock' ? 'selected' : ''; ?>>In Stock</option>
                     <option value="low_stock" <?php echo $status_filter === 'low_stock' ? 'selected' : ''; ?>>Low Stock</option>

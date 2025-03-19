@@ -147,7 +147,7 @@ $products = $stmt->fetchAll();
 include '../../layouts/header.php';
 ?>
 
-<div class="container-fluid">
+<div >
     <?php if (isset($success_message)): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <i class="fas fa-check-circle me-2"></i> <?php echo $success_message; ?>
@@ -163,38 +163,28 @@ include '../../layouts/header.php';
     <?php endif; ?>
 
     <!-- Search and Filter Section -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="GET" action="inventory.php" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" name="search" class="form-control" placeholder="Search products..." value="<?php echo htmlspecialchars($search_query); ?>">
-                </div>
-                <div class="col-md-3">
-                    <select name="category" class="form-control">
-                        <option value="">All Categories</option>
-                        <?php foreach ($categories as $category): ?>
-                            <option value="<?php echo $category['id']; ?>" <?php echo $category_filter == $category['id'] ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($category['name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select name="status" class="form-control">
-                        <option value="">All Status</option>
-                        <option value="in_stock" <?php echo $status_filter === 'in_stock' ? 'selected' : ''; ?>>In Stock</option>
-                        <option value="low_stock" <?php echo $status_filter === 'low_stock' ? 'selected' : ''; ?>>Low Stock</option>
-                        <option value="out_of_stock" <?php echo $status_filter === 'out_of_stock' ? 'selected' : ''; ?>>Out of Stock</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                </div>
-            </form>
+    <form method="GET" action="inventory.php">
+        <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 200px 200px 150px; gap: 1rem; border-radius: 6px;">
+            <input type="text" name="search" placeholder="Search products..." class="form-control" style="background-color: white; color: black;" value="<?php echo htmlspecialchars($search_query); ?>">
+            <select name="category" class="select-control" style="background-color: white; color: black;">
+                <option value="">All Categories</option>
+                <?php foreach ($categories as $category): ?>
+                    <option value="<?php echo $category['id']; ?>" <?php echo $category_filter == $category['id'] ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($category['name']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <select name="status" class="select-control" style="background-color: white; color: black;">
+                <option value="">All Status</option>
+                <option value="in_stock" <?php echo $status_filter === 'in_stock' ? 'selected' : ''; ?>>In Stock</option>
+                <option value="low_stock" <?php echo $status_filter === 'low_stock' ? 'selected' : ''; ?>>Low Stock</option>
+                <option value="out_of_stock" <?php echo $status_filter === 'out_of_stock' ? 'selected' : ''; ?>>Out of Stock</option>
+            </select>
+            <button type="submit" class="btn btn-sm" style="width: auto;">
+                <i class="fas fa-search"></i> Search
+            </button>
         </div>
-    </div>
+    </form>
 
     <!-- Products Grid -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">

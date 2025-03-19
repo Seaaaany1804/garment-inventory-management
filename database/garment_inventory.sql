@@ -86,3 +86,10 @@ VALUES ('sales', 'sales', 'Sales User', 'sales');
 -- Insert initial staff user (password: staff123)
 INSERT INTO users (username, password, full_name, role)
 VALUES ('staff', 'staff', 'Staff User', 'staff');
+
+-- Insert initial categories
+INSERT INTO categories (name) VALUES
+('T-Shirts'),
+('Jeans'),
+('Dresses');
+

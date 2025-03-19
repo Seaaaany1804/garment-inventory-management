@@ -48,11 +48,6 @@ if (!isset($_SESSION['role'])) {
                                     <i class="fas fa-shopping-cart me-2"></i> View Orders
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/admin/reports.php">
-                                    <i class="fas fa-chart-line me-2"></i> Reports
-                                </a>
-                            </li>
                         <?php } elseif ($_SESSION['role'] == 'sales') { ?>
                             <li class="nav-item">
                                 <a class="nav-link text-white" href="../../pages/sales/dashboard.php">

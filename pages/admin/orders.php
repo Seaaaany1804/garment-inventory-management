@@ -195,46 +195,51 @@ include '../../layouts/header.php';
 
 // Filter settings
 $statusFilter = isset($_GET['status']) ? $_GET['status'] : 'all';
+$searchTerm = isset($_GET['search_term']) ? $_GET['search_term'] : '';
 
 // Fetch orders with customer details and item count
-if ($statusFilter === 'all') {
-    $stmt = $conn->query("
-        SELECT 
-            o.id,
-            o.created_at,
-            o.status,
-            o.total_amount,
-            c.name as customer_name,
-            SUM(oi.quantity) as total_quantity,
-            GROUP_CONCAT(p.name SEPARATOR ', ') as product_names
-        FROM orders o
-        LEFT JOIN customers c ON o.customer_id = c.id
-        LEFT JOIN order_items oi ON o.id = oi.order_id
-        LEFT JOIN products p ON oi.product_id = p.id
-        GROUP BY o.id
-        ORDER BY o.created_at DESC
-    ");
-} else {
-    $stmt = $conn->prepare("
-        SELECT 
-            o.id,
-            o.created_at,
-            o.status,
-            o.total_amount,
-            c.name as customer_name,
-            SUM(oi.quantity) as total_quantity,
-            GROUP_CONCAT(p.name SEPARATOR ', ') as product_names
-        FROM orders o
-        LEFT JOIN customers c ON o.customer_id = c.id
-        LEFT JOIN order_items oi ON o.id = oi.order_id
-        LEFT JOIN products p ON oi.product_id = p.id
-        WHERE o.status = ?
-        GROUP BY o.id
-        ORDER BY o.created_at DESC
-    ");
-    $stmt->execute([$statusFilter]);
+$baseQuery = "
+    SELECT 
+        o.id,
+        o.created_at,
+        o.status,
+        o.total_amount,
+        c.name as customer_name,
+        SUM(oi.quantity) as total_quantity,
+        GROUP_CONCAT(p.name SEPARATOR ', ') as product_names
+    FROM orders o
+    LEFT JOIN customers c ON o.customer_id = c.id
+    LEFT JOIN order_items oi ON o.id = oi.order_id
+    LEFT JOIN products p ON oi.product_id = p.id
+    WHERE 1=1
+";
+
+$params = [];
+
+// Add search condition if search term exists
+if (!empty($searchTerm)) {
+    $baseQuery .= " AND (
+        o.id LIKE ? OR 
+        c.name LIKE ? OR 
+        p.name LIKE ? OR
+        o.total_amount LIKE ?
+    )";
+    $searchParam = "%$searchTerm%";
+    $params = [$searchParam, $searchParam, $searchParam, $searchParam];
 }
 
+// Add status filter if not 'all'
+if ($statusFilter !== 'all') {
+    $baseQuery .= " AND o.status = ?";
+    $params[] = $statusFilter;
+}
+
+// Add group by and order by
+$baseQuery .= " GROUP BY o.id ORDER BY o.created_at DESC";
+
+// Prepare and execute the query
+$stmt = $conn->prepare($baseQuery);
+$stmt->execute($params);
 $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get counts for each status
@@ -252,10 +257,20 @@ include '../../layouts/header.php';
     <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0; color: #e2e8f0;"><?php echo $pageTitle; ?></h1>
     
     <div style="display: flex; gap: 1rem;  align-items: center;">
-        <div class="search-container" style="position: relative;">
-            <input type="text" placeholder="Search orders..." style="padding: 8px 12px 8px 36px; border-radius: 8px; border: 1px solid #4b5563; background-color: #1f2937; color: #e2e8f0; min-width: 250px;">
-            <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
-        </div>
+        <form method="GET" action="" class="search-form">
+            <!-- Preserve current status filter when searching -->
+            <?php if ($statusFilter !== 'all'): ?>
+            <input type="hidden" name="status" value="<?php echo htmlspecialchars($statusFilter); ?>">
+            <?php endif; ?>
+            
+            <div class="search-container" style="position: relative;">
+                <input type="text" name="search_term" value="<?php echo htmlspecialchars($searchTerm); ?>" placeholder="Search orders..." style="padding: 8px 12px 8px 36px; border-radius: 8px; border: 1px solid #4b5563; background-color: #1f2937; color: #e2e8f0; min-width: 250px;">
+                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+                <button type="submit" style="position: absolute; right: 0; top: 0; height: 100%; background: none; border: none; padding: 0 10px; color: #6366F1; font-size: 0.875rem; display: <?php echo !empty($searchTerm) ? 'block' : 'none'; ?>;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -264,16 +279,16 @@ include '../../layouts/header.php';
     <!-- Filters and Tabs -->
     <div style="margin-bottom: 20px;">
         <div class="status-tabs" style="display: flex; gap: 1rem; border-bottom: 1px solid #374151; padding-bottom: 0.5rem;">
-            <a href="?status=all" class="status-tab <?php echo $statusFilter === 'all' ? 'active' : ''; ?>" style="padding: 0.5rem 1rem; text-decoration: none; color: <?php echo $statusFilter === 'all' ? '#6366F1' : '#9ca3af'; ?>; font-weight: <?php echo $statusFilter === 'all' ? '600' : '400'; ?>; border-bottom: 2px solid <?php echo $statusFilter === 'all' ? '#6366F1' : 'transparent'; ?>;">
+            <a href="?status=all<?php echo !empty($searchTerm) ? '&search_term=' . urlencode($searchTerm) : ''; ?>" class="status-tab <?php echo $statusFilter === 'all' ? 'active' : ''; ?>" style="padding: 0.5rem 1rem; text-decoration: none; color: <?php echo $statusFilter === 'all' ? '#6366F1' : '#9ca3af'; ?>; font-weight: <?php echo $statusFilter === 'all' ? '600' : '400'; ?>; border-bottom: 2px solid <?php echo $statusFilter === 'all' ? '#6366F1' : 'transparent'; ?>;">
                 All Orders <span class="count" style="background-color: #374151; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; margin-left: 5px;"><?php echo $counts['all']; ?></span>
             </a>
-            <a href="?status=pending" class="status-tab <?php echo $statusFilter === 'pending' ? 'active' : ''; ?>" style="padding: 0.5rem 1rem; text-decoration: none; color: <?php echo $statusFilter === 'pending' ? '#F97316' : '#9ca3af'; ?>; font-weight: <?php echo $statusFilter === 'pending' ? '600' : '400'; ?>; border-bottom: 2px solid <?php echo $statusFilter === 'pending' ? '#F97316' : 'transparent'; ?>;">
+            <a href="?status=pending<?php echo !empty($searchTerm) ? '&search_term=' . urlencode($searchTerm) : ''; ?>" class="status-tab <?php echo $statusFilter === 'pending' ? 'active' : ''; ?>" style="padding: 0.5rem 1rem; text-decoration: none; color: <?php echo $statusFilter === 'pending' ? '#F97316' : '#9ca3af'; ?>; font-weight: <?php echo $statusFilter === 'pending' ? '600' : '400'; ?>; border-bottom: 2px solid <?php echo $statusFilter === 'pending' ? '#F97316' : 'transparent'; ?>;">
                 Pending <span class="count" style="background-color: #374151; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; margin-left: 5px;"><?php echo $counts['pending']; ?></span>
             </a>
-            <a href="?status=shipped" class="status-tab <?php echo $statusFilter === 'shipped' ? 'active' : ''; ?>" style="padding: 0.5rem 1rem; text-decoration: none; color: <?php echo $statusFilter === 'shipped' ? '#0EA5E9' : '#9ca3af'; ?>; font-weight: <?php echo $statusFilter === 'shipped' ? '600' : '400'; ?>; border-bottom: 2px solid <?php echo $statusFilter === 'shipped' ? '#0EA5E9' : 'transparent'; ?>;">
+            <a href="?status=shipped<?php echo !empty($searchTerm) ? '&search_term=' . urlencode($searchTerm) : ''; ?>" class="status-tab <?php echo $statusFilter === 'shipped' ? 'active' : ''; ?>" style="padding: 0.5rem 1rem; text-decoration: none; color: <?php echo $statusFilter === 'shipped' ? '#0EA5E9' : '#9ca3af'; ?>; font-weight: <?php echo $statusFilter === 'shipped' ? '600' : '400'; ?>; border-bottom: 2px solid <?php echo $statusFilter === 'shipped' ? '#0EA5E9' : 'transparent'; ?>;">
                 Shipped <span class="count" style="background-color: #374151; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; margin-left: 5px;"><?php echo $counts['shipped']; ?></span>
             </a>
-            <a href="?status=delivered" class="status-tab <?php echo $statusFilter === 'delivered' ? 'active' : ''; ?>" style="padding: 0.5rem 1rem; text-decoration: none; color: <?php echo $statusFilter === 'delivered' ? '#10B981' : '#9ca3af'; ?>; font-weight: <?php echo $statusFilter === 'delivered' ? '600' : '400'; ?>; border-bottom: 2px solid <?php echo $statusFilter === 'delivered' ? '#10B981' : 'transparent'; ?>;">
+            <a href="?status=delivered<?php echo !empty($searchTerm) ? '&search_term=' . urlencode($searchTerm) : ''; ?>" class="status-tab <?php echo $statusFilter === 'delivered' ? 'active' : ''; ?>" style="padding: 0.5rem 1rem; text-decoration: none; color: <?php echo $statusFilter === 'delivered' ? '#10B981' : '#9ca3af'; ?>; font-weight: <?php echo $statusFilter === 'delivered' ? '600' : '400'; ?>; border-bottom: 2px solid <?php echo $statusFilter === 'delivered' ? '#10B981' : 'transparent'; ?>;">
                 Delivered <span class="count" style="background-color: #374151; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; margin-left: 5px;"><?php echo $counts['delivered']; ?></span>
             </a>
         </div>
@@ -354,5 +369,16 @@ include '../../layouts/header.php';
         </div>
     </div>
 </div>
+
+<!-- Display search and filter information if searching -->
+<?php if (!empty($searchTerm)): ?>
+<div style="margin-top: 15px; color: #9ca3af; font-size: 0.875rem;">
+    <?php $resultText = count($orders) > 0 ? 'Found ' . count($orders) . ' result' . (count($orders) > 1 ? 's' : '') : 'No results found'; ?>
+    <?php echo $resultText; ?> for "<span style="color: #e2e8f0;"><?php echo htmlspecialchars($searchTerm); ?></span>"
+    <a href="?<?php echo $statusFilter !== 'all' ? 'status=' . htmlspecialchars($statusFilter) : ''; ?>" style="color: #6366F1; margin-left: 10px; text-decoration: none;">
+        <i class="fas fa-times"></i> Clear search
+    </a>
+</div>
+<?php endif; ?>
 
 <?php include '../../layouts/footer.php'; ?>

@@ -68,15 +68,15 @@ if (!isset($_SESSION['role'])) {
                         </li>
                     <?php } elseif ($_SESSION['role'] == 'staff') { ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="/garment-inventory-management/pages/staff/manageinventory.php">
-                                <i class="fas text-white fa-boxes"></i>
-                                <span class="text-white">Inventory</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="/garment-inventory-management/pages/staff/processorders.php">
                                 <i class="fas text-white fa-tasks"></i>
                                 <span class="text-white">Orders</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/garment-inventory-management/pages/staff/manageinventory.php">
+                                <i class="fas text-white fa-boxes"></i>
+                                <span class="text-white">Inventory</span>
                             </a>
                         </li>
                     <?php } ?>

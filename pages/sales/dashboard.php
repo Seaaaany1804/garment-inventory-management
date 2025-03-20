@@ -103,7 +103,7 @@ include '../../layouts/header.php';
                     <td><?php echo htmlspecialchars($order['product_names']); ?></td>
                     <td>₱<?php echo number_format($order['total_amount'], 2); ?></td>
                     <td><span class="badge badge-<?php echo $status_class; ?>"><?php echo ucfirst($order['status']); ?></span></td>
-                    <td><a href="orders.php?id=<?php echo $order['id']; ?>" class="btn btn-sm">View</a></td>
+                    <td><a href="order_details.php?id=<?php echo $order['id']; ?>" class="btn btn-sm">View</a></td>
                 </tr>
                 <?php endforeach; ?>
                 <?php endif; ?>
@@ -147,7 +147,7 @@ include '../../layouts/header.php';
                             <strong>Total Amount:</strong> ₱<?php echo number_format($order['total_amount'], 2); ?>
                         </div>
                         <div class="text-end">
-                            <a href="orders.php?id=<?php echo $order['id']; ?>" class="btn btn-primary btn-sm">View Details</a>
+                            <a href="order_details.php?id=<?php echo $order['id']; ?>" class="btn btn-primary btn-sm">View Details</a>
                         </div>
                     </div>
                 </div>

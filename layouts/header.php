@@ -27,7 +27,7 @@ if (!isset($_SESSION['role'])) {
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <i class="fas text-white fa-tshirt brand-icon"></i>
-                <span class="ms-2 text-white" style>Garment Inventory</span>
+                <span class="ms-2 text-white" style>Triple S Garments</span>
             </a>
             <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <i class="fas text-white fa-bars"></i>

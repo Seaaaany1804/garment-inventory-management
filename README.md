@@ -1,6 +1,6 @@
-# Garment Inventory Management System
+# Triple S Garments Inventory Management System
 
-A web-based inventory management system for garment businesses. This application helps manage products, customers, orders, and inventory levels.
+A web-based inventory management system for Triple S Garment Business. This application helps manage products, customers, orders, and inventory levels.
 
 ## Features
 

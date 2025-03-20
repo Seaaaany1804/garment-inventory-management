@@ -60,7 +60,7 @@ include '../../layouts/header.php';
     ?>
     
     <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-        <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0; color: #e2e8f0;"><?php echo $pageTitle; ?> - Order #<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></h1>
+        <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0; color: #e2e8f0;">Order Management - Order #<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></h1>
         <a href="orders.php" class="btn" style="padding: 8px 16px; background-color: #374151; color: #e2e8f0; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
             <i class="fas fa-arrow-left"></i> Back to Orders
         </a>
@@ -159,36 +159,6 @@ include '../../layouts/header.php';
     </div>
     
     <?php
-    // Action buttons for updating order status
-    if ($order['status'] !== 'delivered') {
-        ?>
-        <div class="card" style="border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); overflow: hidden; margin-bottom: 20px; padding: 20px;">
-            <h3 style="font-size: 1.25rem; margin-bottom: 15px; color: #e2e8f0;">Update Order Status</h3>
-            <div style="display: flex; gap: 10px;">
-                <?php if ($order['status'] === 'pending'): ?>
-                <form method="post" action="update_order_status.php">
-                    <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                    <input type="hidden" name="status" value="shipped">
-                    <button type="submit" style="padding: 8px 16px; background-color: #0EA5E9; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                        Mark as Shipped
-                    </button>
-                </form>
-                <?php endif; ?>
-                
-                <?php if ($order['status'] === 'shipped'): ?>
-                <form method="post" action="update_order_status.php">
-                    <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                    <input type="hidden" name="status" value="delivered">
-                    <button type="submit" style="padding: 8px 16px; background-color: #10B981; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                        Mark as Delivered
-                    </button>
-                </form>
-                <?php endif; ?>
-            </div>
-        </div>
-        <?php
-    }
-    
     include '../../layouts/footer.php';
     exit; // End processing here for individual order view
 }
@@ -254,7 +224,7 @@ include '../../layouts/header.php';
 ?>
 
 <div style="margin-bottom: 20px; display: flex; margin-top: 10px; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-    <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0; color: #e2e8f0;"><?php echo $pageTitle; ?></h1>
+    <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0; color: #e2e8f0;">Order Management</h1>
     
     <div style="display: flex; gap: 1rem;  align-items: center;">
         <form method="GET" action="" class="search-form">

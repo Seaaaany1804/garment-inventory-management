@@ -111,6 +111,7 @@ include '../../layouts/header.php';
     </div>
 <?php endif; ?>
 
+<h1> Inventory</h1>
 <div class="stats-grid" style="margin-top: 40px;">
     <div class="stat-card">
         <h3>Total Products</h3>
@@ -135,12 +136,14 @@ include '../../layouts/header.php';
 
 <div class="card">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Inventory Items</h2>
+        <h3>Inventory Items</h3>
         <div class="search-filter">
             <input type="text" class="form-control" id="productSearch" placeholder="Search items...">
         </div>
     </div>
-    <div class="table-container">
+
+    <!-- Table view for larger screens -->
+    <div class="table-container d-none d-md-block">
         <table class="table">
             <thead>
                 <tr>
@@ -195,6 +198,59 @@ include '../../layouts/header.php';
             </tbody>
         </table>
     </div>
+
+    <!-- Card view for mobile screens -->
+    <div class="d-md-none">
+        <?php if (count($products) === 0): ?>
+            <div class="text-center py-4">No products found</div>
+        <?php else: ?>
+            <div class="inventory-cards">
+                <?php foreach ($products as $product): 
+                    if ($product['stock'] <= 0) {
+                        $status = 'Out of Stock';
+                        $statusClass = 'bg-danger';
+                    } elseif ($product['stock'] <= 10) {
+                        $status = 'Low Stock';
+                        $statusClass = 'bg-warning';
+                    } else {
+                        $status = 'In Stock';
+                        $statusClass = 'bg-success';
+                    }
+                ?>
+                <div class="inventory-card">
+                    <div class="inventory-card-header">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">#<?php echo str_pad($product['id'], 3, '0', STR_PAD_LEFT); ?></h5>
+                            <span class="badge <?php echo $statusClass; ?>"><?php echo $status; ?></span>
+                        </div>
+                        <h6 class="product-name"><?php echo htmlspecialchars($product['product_name']); ?></h6>
+                    </div>
+                    <div class="inventory-card-body">
+                        <div class="mb-2">
+                            <strong>Category:</strong> <?php echo htmlspecialchars($product['category_name'] ?? 'Uncategorized'); ?>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Price:</strong> ₱<?php echo number_format($product['price'], 2); ?>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Current Stock:</strong> <?php echo $product['stock']; ?> units
+                        </div>
+                        <div class="text-end">
+                            <button class="btn btn-sm btn-primary update-stock-btn" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#updateStockModal"
+                                    data-product-id="<?php echo $product['id']; ?>"
+                                    data-product-name="<?php echo htmlspecialchars($product['product_name']); ?>"
+                                    data-current-stock="<?php echo $product['stock']; ?>">
+                                <i class="fas fa-edit"></i> Update Stock
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 </div>
 
 <!-- Update Stock Modal -->
@@ -203,7 +259,7 @@ include '../../layouts/header.php';
         <div class="modal-content" style="background-color: var(--background-light); border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
             <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding: 15px 20px;">
                 <h5 class="modal-title" style="color: var(--text-primary); font-weight: 600;">Update Stock: <span id="productNameModal"></span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" style="color: white;" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" style="padding: 20px;">
                 <form id="updateStockForm" method="post" action="manageinventory.php" style="display: grid; gap: 1.5rem;">
@@ -222,7 +278,6 @@ include '../../layouts/header.php';
                 </form>
             </div>
             <div class="modal-footer" style="border-top: 1px solid var(--border-color); padding: 15px 20px;">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 8px 16px; border-radius: 4px; background-color: #4B5563; color: white; border: none; cursor: pointer; font-weight: 500;">Cancel</button>
                 <button type="submit" form="updateStockForm" class="btn btn-primary" style="padding: 8px 16px; border-radius: 4px; background-color: #6366F1; color: white; border: none; cursor: pointer; font-weight: 500;">Update Stock</button>
             </div>
         </div>
@@ -291,6 +346,47 @@ include '../../layouts/header.php';
         color: #EF4444;
         border: 1px solid rgba(239, 68, 68, 0.2);
     }
+
+    /* New card view styles */
+    .inventory-cards {
+        display: grid;
+        gap: 1rem;
+        padding: 1rem 0;
+    }
+
+    .inventory-card {
+        background: var(--background-dark);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .inventory-card-header {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .inventory-card-body {
+        padding-top: 1rem;
+    }
+
+    .product-name {
+        font-size: 1.1rem;
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    @media (max-width: 910px) {
+        .table-container {
+            display: none;
+        }
+        
+        .inventory-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
 </style>
 
 <script>
@@ -316,7 +412,9 @@ document.addEventListener('DOMContentLoaded', function() {
         productSearch.addEventListener('keyup', function() {
             const searchTerm = this.value.toLowerCase();
             const rows = document.querySelectorAll('tbody tr');
+            const cards = document.querySelectorAll('.inventory-card');
             
+            // Search in table rows
             rows.forEach(row => {
                 const productName = row.cells[1].textContent.toLowerCase();
                 const category = row.cells[2].textContent.toLowerCase();
@@ -328,6 +426,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
+                }
+            });
+
+            // Search in cards
+            cards.forEach(card => {
+                const productName = card.querySelector('.product-name').textContent.toLowerCase();
+                const category = card.querySelector('.inventory-card-body').textContent.toLowerCase();
+                const productId = card.querySelector('h5').textContent.toLowerCase();
+                
+                if (productName.includes(searchTerm) || 
+                    category.includes(searchTerm) || 
+                    productId.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
                 }
             });
         });

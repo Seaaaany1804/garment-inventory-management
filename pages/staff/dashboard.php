@@ -11,7 +11,7 @@ if (session_status() === PHP_SESSION_NONE) {
 $pageTitle = "Warehouse Dashboard";
 include '../../layouts/header.php';
 ?>
-
+<h3> Inventory</h3>
 <div class="stats-grid" style="margin-top: 40px;">
     <div class="stat-card">
         <h3>Pending Orders</h3>

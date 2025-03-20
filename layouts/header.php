@@ -68,12 +68,6 @@ if (!isset($_SESSION['role'])) {
                         </li>
                     <?php } elseif ($_SESSION['role'] == 'staff') { ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="../../pages/staff/dashboard.php">
-                                <i class="fas text-white fa-tachometer-alt"></i>
-                                <span class="text-white">Dashboard</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="/garment-inventory-management/pages/staff/manageinventory.php">
                                 <i class="fas text-white fa-boxes"></i>
                                 <span class="text-white">Inventory</span>

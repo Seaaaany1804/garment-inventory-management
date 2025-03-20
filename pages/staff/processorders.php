@@ -236,6 +236,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 include '../../layouts/header.php';
 ?>
 
+<h1> Orders</h1>
 <div class="stats-grid" style="margin-top: 40px;">
     <div class="stat-card">
         <h3>Total Orders</h3>
@@ -260,12 +261,12 @@ include '../../layouts/header.php';
 
 <div class="card">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Process Orders</h2>
+        <h3>Process Orders</h3>
         <div class="search-filter">
-            <input type="text" class="form-control" id="orderSearch" placeholder="Search orders...">
+            <input type="text" class="form-control" style="background-color: white; color: black;" id="orderSearch" placeholder="Search orders...">
         </div>
     </div>
-    <div class="table-container">
+    <div class="table-container d-none d-lg-block">
         <table class="table">
             <thead>
                 <tr>
@@ -331,6 +332,67 @@ include '../../layouts/header.php';
                 <?php endif; ?>
             </tbody>
         </table>
+    </div>
+
+    <!-- Card view for mobile screens -->
+    <div class="d-lg-none">
+        <?php if (count($orders) === 0): ?>
+            <div class="text-center py-4 text-white">No orders found</div>
+        <?php else: ?>
+            <div class="order-cards">
+                <?php foreach ($orders as $order):
+                    $statusClass = match($order['status']) {
+                        'pending' => 'bg-warning',
+                        'shipped' => 'bg-info',
+                        'delivered' => 'bg-success',
+                        default => 'bg-secondary'
+                    };
+                    $statusText = ucfirst($order['status']);
+                ?>
+                <div class="order-card">
+                    <div class="order-card-header">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">#<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></h5>
+                            <span class="badge <?php echo $statusClass; ?>"><?php echo $statusText; ?></span>
+                        </div>
+                        <h6 class="customer-name mb-0"><?php echo htmlspecialchars($order['customer_name']); ?></h6>
+                    </div>
+                    <div class="order-card-body">
+                        <div class="mb-2">
+                            <strong>Date:</strong> <?php echo date('Y-m-d', strtotime($order['created_at'])); ?>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Products:</strong> <?php echo htmlspecialchars($order['products'] ?? 'N/A'); ?>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Quantity:</strong> <?php echo $order['total_quantity'] ?? 0; ?> items
+                        </div>
+                        <div class="mb-2">
+                            <strong>Contact:</strong> <?php echo htmlspecialchars($order['customer_phone'] ?? 'N/A'); ?>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Amount:</strong> ₱<?php echo number_format($order['total_amount'], 2); ?>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="?id=<?php echo $order['id']; ?>" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <?php if ($order['status'] === 'pending'): ?>
+                            <button class="btn btn-sm btn-info" onclick="updateStatus('<?php echo $order['id']; ?>', 'shipped')">
+                                <i class="fas fa-truck"></i> Ship
+                            </button>
+                            <?php endif; ?>
+                            <?php if ($order['status'] === 'shipped'): ?>
+                            <button class="btn btn-sm btn-success" onclick="updateStatus('<?php echo $order['id']; ?>', 'delivered')">
+                                <i class="fas fa-check"></i> Delivered
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -417,6 +479,107 @@ include '../../layouts/header.php';
     .table tbody tr:hover {
         background-color: rgba(255, 255, 255, 0.1);
     }
+
+    /* Card view styles */
+    .order-cards {
+        display: grid;
+        gap: 1rem;
+        padding: 1rem 0;
+    }
+
+    .order-card {
+        background: var(--background-dark);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .order-card-header {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        background-color: rgba(0, 0, 0, 0.2);
+    }
+
+    .order-card-body {
+        padding: 1rem;
+    }
+
+    .customer-name {
+        font-size: 1.1rem;
+        color: var(--text-primary);
+    }
+
+    .order-card .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .order-card .d-flex.gap-2 {
+        flex-wrap: wrap;
+        gap: 0.5rem !important;
+    }
+
+    @media (min-width: 992px) {
+        .d-lg-none {
+            display: none !important;
+        }
+    }
+
+    @media (max-width: 1100px) {
+        .order-cards {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    @media (max-width: 991px) {
+        .order-cards {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    @media (max-width: 745px) {
+        .order-cards {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Improve card content layout */
+    .order-card-body > div {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.5rem;
+    }
+
+    .order-card-body > div strong {
+        color: #9ca3af;
+        min-width: 80px;
+    }
+
+    .order-card-body > div:not(:last-child) {
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .order-card-body .d-flex.gap-2 {
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 0.5rem;
+        justify-content: stretch;
+    }
+
+    /* Make products text wrap properly */
+    .order-card-body > div.mb-2:nth-child(2) {
+        align-items: flex-start;
+    }
 </style>
 
 <script>
@@ -450,7 +613,9 @@ document.addEventListener('DOMContentLoaded', function() {
         orderSearch.addEventListener('keyup', function() {
             const searchTerm = this.value.toLowerCase();
             const rows = document.querySelectorAll('tbody tr');
+            const cards = document.querySelectorAll('.order-card');
             
+            // Search in table rows
             rows.forEach(row => {
                 const orderId = row.cells[0].textContent.toLowerCase();
                 const customerName = row.cells[1].textContent.toLowerCase();
@@ -462,6 +627,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
+                }
+            });
+
+            // Search in cards
+            cards.forEach(card => {
+                const orderId = card.querySelector('h5').textContent.toLowerCase();
+                const customerName = card.querySelector('.customer-name').textContent.toLowerCase();
+                const products = card.querySelector('.order-card-body').textContent.toLowerCase();
+                
+                if (orderId.includes(searchTerm) || 
+                    customerName.includes(searchTerm) || 
+                    products.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
                 }
             });
         });

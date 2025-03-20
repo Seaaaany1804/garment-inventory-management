@@ -194,30 +194,30 @@ include '../../layouts/header.php';
     </div>
 <?php endif; ?>
 
-<div style="display: flex; flex-direction: column; min-height: calc(100vh - 80px); margin-top: 40px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1><?php echo $page_title; ?></h1>
-        <div>
-            <button class="btn btn-secondary" style="width: auto; margin-right: 10px;" onclick="openAddCategoryModal()">
-                <i class="fas fa-folder-plus"></i> Add Category
+<div style="display: flex; flex-direction: column; min-height: calc(100vh - 80px); margin-top: 10px;">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 1rem;">
+        <h1 style="margin: 0; font-size: clamp(1.5rem, 4vw, 1.8rem);"><?php echo $page_title; ?></h1>
+        <div class="header-buttons" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-secondary" style="width: auto;" onclick="openAddCategoryModal()">
+                <i class="fas fa-folder-plus"></i> <span class="btn-text">Add Category</span>
             </button>
             <button class="btn btn-primary" style="width: auto;" onclick="openAddModal()">
-                <i class="fas fa-plus"></i> Add New Item
+                <i class="fas fa-plus"></i> <span class="btn-text">Add New Item</span>
             </button>
         </div>
     </div>
 
     <!-- Categories Grid -->
-    <div class="card" style="margin-bottom: 25px; padding: 20px; border-radius: 10px; background-color: var(--background-light);">
-        <h2 style="margin-bottom: 20px;">Categories</h2>
+    <div class="card categories-section" style="margin-bottom: 25px; padding: 20px; border-radius: 10px; background-color: var(--background-light);">
+        <h2 style="margin-bottom: 20px; font-size: clamp(1.2rem, 3vw, 1.5rem);">Categories</h2>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+        <div class="categories-grid" style="display: grid; gap: 15px;">
             <?php foreach ($categories as $category): ?>
-            <div class="category-card" style="background-color: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h3 style="margin: 0; font-size: 16px; color: var(--text-primary);"><?php echo htmlspecialchars($category['name']); ?></h3>
+            <div class="category-card">
+                <div class="category-name">
+                    <h3><?php echo htmlspecialchars($category['name']); ?></h3>
                 </div>
-                <div class="actions" style="display: flex; gap: 10px;">
+                <div class="actions">
                     <button class="btn btn-sm" onclick="openEditCategoryModal('<?php echo $category['id']; ?>', '<?php echo htmlspecialchars($category['name']); ?>')">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -228,13 +228,13 @@ include '../../layouts/header.php';
     </div>
 
     <!-- Inventory List -->
-    <div class="card" style="flex: 1; display: flex; flex-direction: column;">
-        <h2>Inventory Items</h2>
+    <div class="card inventory-section" style="flex: 1; display: flex; flex-direction: column;">
+        <h2 style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Inventory Items</h2>
         
-        <form method="GET" action="inventory.php">
-            <div style="margin-bottom: 20px; display: grid; grid-template-columns: 1fr 200px 200px 150px; gap: 1rem; padding: 10px; border-radius: 6px;">
-                <input type="text" name="search" placeholder="Search inventory..." class="form-control" style="background-color: white; color: black;" value="<?php echo htmlspecialchars($search_query); ?>">
-                <select name="category" class="select-control" style="background-color: white; color: black;">
+        <form method="GET" action="inventory.php" class="filter-form">
+            <div class="filters-container">
+                <input type="text" name="search" placeholder="Search inventory..." class="form-control search-input" value="<?php echo htmlspecialchars($search_query); ?>">
+                <select name="category" class="select-control category-select">
                     <option value="">All Categories</option>
                     <?php foreach ($categories as $category): ?>
                         <option value="<?php echo $category['id']; ?>" <?php echo $category_filter == $category['id'] ? 'selected' : ''; ?>>
@@ -242,20 +242,20 @@ include '../../layouts/header.php';
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <select name="status" class="select-control" style="background-color: white; color: black;">
+                <select name="status" class="select-control status-select">
                     <option value="">All Status</option>
                     <option value="in_stock" <?php echo $status_filter === 'in_stock' ? 'selected' : ''; ?>>In Stock</option>
                     <option value="low_stock" <?php echo $status_filter === 'low_stock' ? 'selected' : ''; ?>>Low Stock</option>
                     <option value="out_of_stock" <?php echo $status_filter === 'out_of_stock' ? 'selected' : ''; ?>>Out of Stock</option>
                 </select>
-                <button type="submit" class="btn btn-sm" style="width: auto;">
+                <button type="submit" class="btn btn-sm search-btn">
                     <i class="fas fa-search"></i> Search
                 </button>
             </div>
         </form>
         
-        <div class="table-container" style="flex: 1; overflow: auto;">
-            <table>
+        <div class="table-responsive">
+            <table class="inventory-table">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -286,13 +286,13 @@ include '../../layouts/header.php';
                         }
                     ?>
                     <tr>
-                        <td>#<?php echo str_pad($product['id'], 3, '0', STR_PAD_LEFT); ?></td>
-                        <td><?php echo htmlspecialchars($product['name']); ?></td>
-                        <td><?php echo htmlspecialchars($product['category_name']); ?></td>
-                        <td>₱<?php echo number_format($product['price'], 2); ?></td>
-                        <td><?php echo $product['stock']; ?></td>
-                        <td><span class="badge badge-<?php echo $status_class; ?>"><?php echo $status_text; ?></span></td>
-                        <td>
+                        <td data-label="ID">#<?php echo str_pad($product['id'], 3, '0', STR_PAD_LEFT); ?></td>
+                        <td data-label="Name"><?php echo htmlspecialchars($product['name']); ?></td>
+                        <td data-label="Category"><?php echo htmlspecialchars($product['category_name']); ?></td>
+                        <td data-label="Price">₱<?php echo number_format($product['price'], 2); ?></td>
+                        <td data-label="Stock"><?php echo $product['stock']; ?></td>
+                        <td data-label="Status"><span class="badge badge-<?php echo $status_class; ?>"><?php echo $status_text; ?></span></td>
+                        <td data-label="Actions">
                             <button class="btn btn-sm" onclick="openEditModal('<?php echo $product['id']; ?>', '<?php echo htmlspecialchars($product['name']); ?>', '<?php echo $product['category_id']; ?>', '<?php echo $product['price']; ?>', '<?php echo $product['stock']; ?>')">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
@@ -302,12 +302,6 @@ include '../../layouts/header.php';
                     <?php endif; ?>
                 </tbody>
             </table>
-        </div>
-        
-        <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-            <div>
-                <span style="color: var(--text-secondary);">Showing <?php echo count($products); ?> items</span>
-            </div>
         </div>
     </div>
 </div>
@@ -591,5 +585,163 @@ include '../../layouts/header.php';
         }
     }
 </script>
+
+<style>
+    /* Responsive Styles */
+    .categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    .category-card {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .category-name h3 {
+        margin: 0;
+        font-size: 16px;
+        color: var(--text-primary);
+    }
+
+    .filters-container {
+        display: grid;
+        grid-template-columns: 1fr 200px 200px 150px;
+        gap: 1rem;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+
+    .search-input,
+    .category-select,
+    .status-select {
+        background-color: white;
+        color: black;
+        width: 100%;
+    }
+
+    .search-btn {
+        width: auto;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        margin: 0 -20px;
+        padding: 0 20px;
+    }
+
+    .inventory-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .inventory-table th,
+    .inventory-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: #E2E8F0;
+    }
+
+    .inventory-table th {
+        background: rgba(0, 0, 0, 0.2);
+        color: #94A3B8;
+        font-weight: 500;
+    }
+
+    .badge {
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 600;
+        border-radius: 0.25rem;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 1200px) {
+        .filters-container {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .filters-container {
+            grid-template-columns: 1fr;
+        }
+
+        .header-buttons {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        .inventory-table {
+            border: 0;
+        }
+
+        .inventory-table thead {
+            display: none;
+        }
+
+        .inventory-table tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .inventory-table td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 0;
+        }
+
+        .inventory-table td:last-child {
+            border-bottom: 0;
+        }
+
+        .inventory-table td::before {
+            content: attr(data-label);
+            font-weight: 500;
+            color: #94A3B8;
+            margin-right: 1rem;
+        }
+
+        .btn-text {
+            display: none;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .categories-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Modal Responsive Styles */
+    .modal-content {
+        width: 90%;
+        max-width: 500px;
+        margin: 20px auto;
+    }
+
+    @media (max-width: 576px) {
+        .modal-content {
+            width: 95%;
+            margin: 10px;
+            padding: 15px;
+        }
+
+        .item-form {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
 
 <?php include '../../layouts/footer.php'; ?> 

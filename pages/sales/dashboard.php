@@ -41,7 +41,7 @@ $recent_orders = $conn->query("
 
 include '../../layouts/header.php';
 ?>
-<h3>Dashboard</h3>
+<h1>Dashboard</h1>
 <div class="stats-grid" style="margin-top: 40px;">
     <div class="stat-card">
         <h3>Total Orders</h3>
@@ -65,7 +65,7 @@ include '../../layouts/header.php';
 </div>
 
 <div class="card">
-    <h2>Recent Orders</h2>
+    <h3>Recent Orders</h3>
     <!-- Table view for larger screens -->
     <div class="table-container d-none d-md-block">
         <table>

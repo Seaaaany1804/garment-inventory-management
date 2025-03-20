@@ -163,7 +163,7 @@ include '../../layouts/header.php';
     <?php endif; ?>
 
     <!-- Search and Filter Section -->
-    <h3>Inventory</h3>
+    <h1>Inventory</h1>
     <form method="GET" action="inventory.php">
         <div class="filter-container">
             <input type="text" name="search" placeholder="Search products..." class="form-control" style="background-color: white; color: black;" value="<?php echo htmlspecialchars($search_query); ?>">

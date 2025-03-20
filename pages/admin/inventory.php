@@ -76,6 +76,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 
                 $_SESSION['success_message'] = "Product deleted successfully!";
+            } elseif ($_POST['action'] === 'edit_category') {
+                // Update existing category
+                $stmt = $conn->prepare("UPDATE categories SET name = ? WHERE id = ?");
+                $stmt->execute([
+                    $_POST['category_name'],
+                    $_POST['category_id']
+                ]);
+                
+                // Log activity
+                $stmt = $conn->prepare("INSERT INTO activity_log (user_id, description, action) VALUES (?, ?, ?)");
+                $stmt->execute([
+                    $_SESSION['user_id'],
+                    "Updated category ID: " . $_POST['category_id'],
+                    "update_category"
+                ]);
+                
+                $_SESSION['success_message'] = "Category updated successfully!";
+            } elseif ($_POST['action'] === 'delete_category') {
+                // Check if category is being used
+                $stmt = $conn->prepare("SELECT COUNT(*) FROM products WHERE category_id = ?");
+                $stmt->execute([$_POST['category_id']]);
+                $count = $stmt->fetchColumn();
+                
+                if ($count > 0) {
+                    $_SESSION['error_message'] = "Cannot delete category. It is used by {$count} products.";
+                } else {
+                    // Delete category
+                    $stmt = $conn->prepare("DELETE FROM categories WHERE id = ?");
+                    $stmt->execute([$_POST['category_id']]);
+                    
+                    // Log activity
+                    $stmt = $conn->prepare("INSERT INTO activity_log (user_id, description, action) VALUES (?, ?, ?)");
+                    $stmt->execute([
+                        $_SESSION['user_id'],
+                        "Deleted category ID: " . $_POST['category_id'],
+                        "delete_category"
+                    ]);
+                    
+                    $_SESSION['success_message'] = "Category deleted successfully!";
+                }
             }
         }
     } catch (PDOException $e) {
@@ -93,7 +133,7 @@ $category_filter = isset($_GET['category']) ? $_GET['category'] : '';
 $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
 
 // Fetch categories for dropdown
-$categories = $conn->query("SELECT * FROM categories ORDER BY name")->fetchAll();
+$categories = $conn->query("SELECT * FROM categories ORDER BY id")->fetchAll();
 
 // Fetch products with category names
 $query = "SELECT p.*, c.name as category_name 
@@ -164,6 +204,26 @@ include '../../layouts/header.php';
             <button class="btn btn-primary" style="width: auto;" onclick="openAddModal()">
                 <i class="fas fa-plus"></i> Add New Item
             </button>
+        </div>
+    </div>
+
+    <!-- Categories Grid -->
+    <div class="card" style="margin-bottom: 25px; padding: 20px; border-radius: 10px; background-color: var(--background-light);">
+        <h2 style="margin-bottom: 20px;">Categories</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+            <?php foreach ($categories as $category): ?>
+            <div class="category-card" style="background-color: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; color: var(--text-primary);"><?php echo htmlspecialchars($category['name']); ?></h3>
+                </div>
+                <div class="actions" style="display: flex; gap: 10px;">
+                    <button class="btn btn-sm" onclick="openEditCategoryModal('<?php echo $category['id']; ?>', '<?php echo htmlspecialchars($category['name']); ?>')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 
@@ -389,6 +449,43 @@ include '../../layouts/header.php';
     </div>
 </div>
 
+<!-- Edit Category Modal -->
+<div id="editCategoryModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+    <div class="modal-content" style="background-color: var(--background-light); margin: 10% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 500px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>Edit Category</h2>
+            <button class="btn btn-sm" onclick="closeModal('editCategoryModal')" style="background: none; color: var(--text-secondary);">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="editCategoryForm" method="POST" action="inventory.php" class="item-form">
+            <input type="hidden" name="action" value="edit_category">
+            <input type="hidden" id="edit_category_id" name="category_id">
+            
+            <div class="form-row" style="margin-bottom: 20px;">
+                <label for="edit_category_name">Category Name</label>
+                <input type="text" id="edit_category_name" name="category_name" class="form-control" required>
+            </div>
+            
+            <div style="margin-top: 1rem; display: flex; justify-content: space-between;">
+                <button type="button" class="btn btn-sm" onclick="deleteCategory()" style="background-color: rgba(255, 82, 82, 0.1); color: var(--danger-color);">
+                    <i class="fas fa-trash"></i> Delete Category
+                </button>
+                
+                <div>
+                    <button type="button" class="btn btn-sm" onclick="closeModal('editCategoryModal')" style="margin-right: 0.5rem;">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="width: auto;">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function openAddModal() {
         document.getElementById('addItemModal').style.display = 'block';
@@ -396,6 +493,12 @@ include '../../layouts/header.php';
     
     function openAddCategoryModal() {
         document.getElementById('addCategoryModal').style.display = 'block';
+    }
+    
+    function openEditCategoryModal(id, name) {
+        document.getElementById('edit_category_id').value = id;
+        document.getElementById('edit_category_name').value = name;
+        document.getElementById('editCategoryModal').style.display = 'block';
     }
     
     function openEditModal(id, name, category, price, stock) {
@@ -427,6 +530,52 @@ include '../../layouts/header.php';
             idInput.type = 'hidden';
             idInput.name = 'item_id';
             idInput.value = document.getElementById('edit_item_id').value;
+            
+            form.appendChild(actionInput);
+            form.appendChild(idInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    
+    function deleteCategory() {
+        if (confirm('Are you sure you want to delete this category? If it contains products, you will not be able to delete it.')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'inventory.php';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'delete_category';
+            
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'category_id';
+            idInput.value = document.getElementById('edit_category_id').value;
+            
+            form.appendChild(actionInput);
+            form.appendChild(idInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    
+    function confirmDeleteCategory(id, name) {
+        if (confirm(`Are you sure you want to delete the category "${name}"? If it contains products, you will not be able to delete it.`)) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'inventory.php';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'delete_category';
+            
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'category_id';
+            idInput.value = id;
             
             form.appendChild(actionInput);
             form.appendChild(idInput);

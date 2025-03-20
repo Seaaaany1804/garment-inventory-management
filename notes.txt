@@ -2,11 +2,10 @@
 UI
 - alert for Product Added Successfully
 - redesign dashboard for staff
-- add view function for sales/dashboard
+- add recent orders view function for sales/dashboard
 
 Test
 - filter functions
 
 Issues
 - inventory item can't be deleted if an order is created, find a fix
-- no ways to create or manage categories, add one

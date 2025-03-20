@@ -28,6 +28,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 
                 $_SESSION['success_message'] = "Product added successfully!";
+            } elseif ($_POST['action'] === 'add_category') {
+                // Add new category
+                $stmt = $conn->prepare("INSERT INTO categories (name) VALUES (?)");
+                $stmt->execute([$_POST['category_name']]);
+                
+                // Log activity
+                $stmt = $conn->prepare("INSERT INTO activity_log (user_id, description, action) VALUES (?, ?, ?)");
+                $stmt->execute([
+                    $_SESSION['user_id'],
+                    "Added new category: " . $_POST['category_name'],
+                    "add_category"
+                ]);
+                
+                $_SESSION['success_message'] = "Category added successfully!";
             } elseif ($_POST['action'] === 'edit') {
                 // Update existing item
                 $stmt = $conn->prepare("UPDATE products SET name = ?, category_id = ?, price = ?, stock = ? WHERE id = ?");
@@ -143,9 +157,14 @@ include '../../layouts/header.php';
 <div style="display: flex; flex-direction: column; min-height: calc(100vh - 80px); margin-top: 40px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1><?php echo $page_title; ?></h1>
-        <button class="btn btn-primary" style="width: auto;" onclick="openAddModal()">
-            <i class="fas fa-plus"></i> Add New Item
-        </button>
+        <div>
+            <button class="btn btn-secondary" style="width: auto; margin-right: 10px;" onclick="openAddCategoryModal()">
+                <i class="fas fa-folder-plus"></i> Add Category
+            </button>
+            <button class="btn btn-primary" style="width: auto;" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> Add New Item
+            </button>
+        </div>
     </div>
 
     <!-- Inventory List -->
@@ -340,9 +359,43 @@ include '../../layouts/header.php';
     </div>
 </div>
 
+<!-- Add Category Modal -->
+<div id="addCategoryModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);">
+    <div class="modal-content" style="background-color: var(--background-light); margin: 10% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 500px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>Add New Category</h2>
+            <button class="btn btn-sm" onclick="closeModal('addCategoryModal')" style="background: none; color: var(--text-secondary);">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="addCategoryForm" method="POST" action="inventory.php" class="item-form">
+            <input type="hidden" name="action" value="add_category">
+            
+            <div class="form-row" style="margin-bottom: 20px;">
+                <label for="category_name">Category Name</label>
+                <input type="text" id="category_name" name="category_name" class="form-control" required>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="button" class="btn btn-sm" onclick="closeModal('addCategoryModal')" style="margin-right: 0.5rem;">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" style="width: auto;">
+                    <i class="fas fa-save"></i> Add Category
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function openAddModal() {
         document.getElementById('addItemModal').style.display = 'block';
+    }
+    
+    function openAddCategoryModal() {
+        document.getElementById('addCategoryModal').style.display = 'block';
     }
     
     function openEditModal(id, name, category, price, stock) {

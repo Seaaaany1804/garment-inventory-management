@@ -29,7 +29,7 @@ if (!isset($_SESSION['role'])) {
                 <div class="position-sticky pt-3 h-100">
                     <div class="text-center p-3 mb-3">
                         <h4 class="text-white">Garment Inventory</h4>
-                        <p class="text-white-50">Welcome, <?php echo $_SESSION['username']; ?></p>
+                        <p class="text-white-50">Welcome, <?php echo $_SESSION['full_name']; ?></p>
                     </div>
                     <ul class="nav flex-column">
                         <?php if ($_SESSION['role'] == 'admin') { ?>

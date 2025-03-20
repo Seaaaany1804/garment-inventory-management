@@ -163,8 +163,9 @@ include '../../layouts/header.php';
     <?php endif; ?>
 
     <!-- Search and Filter Section -->
+    <h3>Inventory</h3>
     <form method="GET" action="inventory.php">
-        <div style="margin-bottom: 20px; margin-top: 40px; display: grid; grid-template-columns: 1fr 200px 200px 150px; gap: 1rem; border-radius: 6px;">
+        <div class="filter-container">
             <input type="text" name="search" placeholder="Search products..." class="form-control" style="background-color: white; color: black;" value="<?php echo htmlspecialchars($search_query); ?>">
             <select name="category" class="select-control" style="background-color: white; color: black;">
                 <option value="">All Categories</option>
@@ -180,14 +181,49 @@ include '../../layouts/header.php';
                 <option value="low_stock" <?php echo $status_filter === 'low_stock' ? 'selected' : ''; ?>>Low Stock</option>
                 <option value="out_of_stock" <?php echo $status_filter === 'out_of_stock' ? 'selected' : ''; ?>>Out of Stock</option>
             </select>
-            <button type="submit" class="btn btn-sm" style="width: auto;">
+            <button type="submit" class="btn btn-sm search-btn">
                 <i class="fas fa-search"></i> Search
             </button>
         </div>
     </form>
 
+    <style>
+        .filter-container {
+            margin-bottom: 20px;
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: 1fr 200px 200px 150px;
+            gap: 1rem;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 1024px) {
+            .filter-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .search-btn {
+                grid-column: 2;
+                justify-self: end;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .filter-container {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            .search-btn {
+                grid-column: 1;
+                width: 100%;
+            }
+            .select-control {
+                width: 100%;
+            }
+        }
+    </style>
+
     <!-- Products Grid -->
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 gy-3 gx-3">
         <?php if (empty($products)): ?>
         <div class="col-12 text-center py-5">
             <h4 class="text-white text-center">No items available yet</h4>
@@ -205,10 +241,10 @@ include '../../layouts/header.php';
                 $status_text = 'Low Stock';
             }
         ?>
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body d-flex flex-column justify-content-between">
-                    <div class="d-flex justify-content-between align-items-start">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
                         <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
                         <span class="badge bg-<?php echo $status_class; ?>"><?php echo $status_text; ?></span>
                     </div>
@@ -310,7 +346,7 @@ include '../../layouts/header.php';
                     Cancel
                 </button>
                 <button type="submit" class="btn btn-primary" id="confirmOrder" style="width: auto;">
-                    <i class="fas fa-shopping-cart"></i> Place Order
+                    <i class="fas fa-shopping-cart text-md"></i> Place Order
                 </button>
             </div>
         </form>

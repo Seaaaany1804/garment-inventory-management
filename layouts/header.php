@@ -22,70 +22,88 @@ if (!isset($_SESSION['role'])) {
     <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row vh-100">
-            <!-- Sidebar -->
-            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar">
-                <div class="position-sticky pt-3 h-100">
-                    <div class="text-center p-3 mb-3">
-                        <h4 class="text-white">Garment Inventory</h4>
-                        <p class="text-white-50">Welcome, <?php echo $_SESSION['full_name']; ?></p>
-                    </div>
-                    <ul class="nav flex-column">
-                        <?php if ($_SESSION['role'] == 'admin') { ?>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/admin/dashboard.php">
-                                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/admin/inventory.php">
-                                    <i class="fas fa-boxes me-2"></i> Inventory
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/admin/orders.php">
-                                    <i class="fas fa-shopping-cart me-2"></i> View Orders
-                                </a>
-                            </li>
-                        <?php } elseif ($_SESSION['role'] == 'sales') { ?>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/sales/dashboard.php">
-                                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="/garment-inventory-management/pages/sales/inventory.php">
-                                    <i class="fas fa-tshirt me-2"></i> View Products
-                                </a>
-                            </li>
-                        <?php } elseif ($_SESSION['role'] == 'staff') { ?>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="../../pages/staff/dashboard.php">
-                                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="/garment-inventory-management/pages/staff/manageinventory.php">
-                                    <i class="fas fa-boxes me-2"></i> Manage Inventory
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white" href="/garment-inventory-management/pages/staff/processorders.php">
-                                    <i class="fas fa-tasks me-2"></i> Process Orders
-                                </a>
-                            </li>
-                        <?php } ?>
-                        <li class="nav-item mt-3">
-                            <a class="nav-link text-white" href="../../includes/auth/logout.php">
-                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg custom-navbar" style="padding-top: 20px; padding-bottom: 20px; background-color: #141414;">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="fas text-white fa-tshirt brand-icon"></i>
+                <span class="ms-2 text-white" style>Garment Inventory</span>
+            </a>
+            <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fas text-white fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto me-4">
+                    <?php if ($_SESSION['role'] == 'admin') { ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../../pages/admin/dashboard.php">
+                                <i class="fas text-white fa-tachometer-alt"></i>
+                                <span class="text-white">Dashboard</span>
                             </a>
                         </li>
-                    </ul>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../../pages/admin/inventory.php">
+                                <i class="fas text-white fa-boxes"></i>
+                                <span class="text-white">Inventory</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../../pages/admin/orders.php">
+                                <i class="fas text-white fa-shopping-cart"></i>
+                                <span class="text-white">Orders</span>
+                            </a>
+                        </li>
+                    <?php } elseif ($_SESSION['role'] == 'sales') { ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../../pages/sales/dashboard.php">
+                                <i class="fas text-white fa-tachometer-alt"></i>
+                                <span class="text-white">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/garment-inventory-management/pages/sales/inventory.php">
+                                <i class="fas text-white fa-boxes"></i>
+                                <span class="text-white">Inventory</span>
+                            </a>
+                        </li>
+                    <?php } elseif ($_SESSION['role'] == 'staff') { ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../../pages/staff/dashboard.php">
+                                <i class="fas text-white fa-tachometer-alt"></i>
+                                <span class="text-white">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/garment-inventory-management/pages/staff/manageinventory.php">
+                                <i class="fas text-white fa-boxes"></i>
+                                <span class="text-white">Inventory</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/garment-inventory-management/pages/staff/processorders.php">
+                                <i class="fas text-white fa-tasks"></i>
+                                <span class="text-white">Orders</span>
+                            </a>
+                        </li>
+                    <?php } ?>
+                </ul>
+                <div class="nav-user-section">
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle user-menu" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="ms-2"><?php echo $_SESSION['full_name']; ?></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item text-danger" href="../../includes/auth/logout.php">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </div>
                 </div>
-            </nav>
+            </div>
+        </div>
+    </nav>
 
-            <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 d-flex flex-column min-vh-100">
-                <!-- Content goes below this line --> 
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Content goes below this line --> 

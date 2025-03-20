@@ -41,7 +41,7 @@ $recent_orders = $conn->query("
 
 include '../../layouts/header.php';
 ?>
-
+<h3>Dashboard</h3>
 <div class="stats-grid" style="margin-top: 40px;">
     <div class="stat-card">
         <h3>Total Orders</h3>
@@ -66,7 +66,8 @@ include '../../layouts/header.php';
 
 <div class="card">
     <h2>Recent Orders</h2>
-    <div class="table-container">
+    <!-- Table view for larger screens -->
+    <div class="table-container d-none d-md-block">
         <table>
             <thead>
                 <tr>
@@ -109,6 +110,86 @@ include '../../layouts/header.php';
             </tbody>
         </table>
     </div>
+
+    <!-- Card view for mobile screens -->
+    <div class="d-md-none">
+        <?php if (empty($recent_orders)): ?>
+            <div class="text-center py-4">No orders available</div>
+        <?php else: ?>
+            <div class="order-cards">
+                <?php foreach ($recent_orders as $order): 
+                    $status_class = match($order['status']) {
+                        'pending' => 'warning',
+                        'shipped' => 'info',
+                        'delivered' => 'success',
+                        default => 'secondary'
+                    };
+                ?>
+                <div class="order-card">
+                    <div class="order-card-header">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0">#<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></h5>
+                            <span class="badge badge-<?php echo $status_class; ?>"><?php echo ucfirst($order['status']); ?></span>
+                        </div>
+                        <div class="text-muted small"><?php echo date('M d, Y', strtotime($order['created_at'])); ?></div>
+                    </div>
+                    <div class="order-card-body">
+                        <div class="mb-2">
+                            <strong>Customer:</strong> <?php echo htmlspecialchars($order['customer_name']); ?>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Items:</strong> <?php echo $order['total_quantity'] ?? 0; ?>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Products:</strong> <?php echo htmlspecialchars($order['product_names']); ?>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Total Amount:</strong> ₱<?php echo number_format($order['total_amount'], 2); ?>
+                        </div>
+                        <div class="text-end">
+                            <a href="orders.php?id=<?php echo $order['id']; ?>" class="btn btn-primary btn-sm">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 </div>
+
+<style>
+    .order-cards {
+        display: grid;
+        gap: 1rem;
+        padding: 1rem 0;
+    }
+
+    .order-card {
+        background: var(--background-dark);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .order-card-header {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .order-card-body {
+        padding-top: 1rem;
+    }
+
+    @media (max-width: 824px) {
+        .table-container {
+            display: none;
+        }
+        
+        .order-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 
 <?php include '../../layouts/footer.php'; ?> 

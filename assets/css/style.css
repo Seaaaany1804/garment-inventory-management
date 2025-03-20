@@ -10,6 +10,7 @@
     --warning-color: #FFC107;
     --info-color: #2196F3;
     --border-color: rgba(255, 255, 255, 0.1);
+    --navbar-height: 70px;
 }
 
 * {
@@ -24,8 +25,193 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
+}
+
+/* Navbar Styles */
+.custom-navbar {
+    background-color: #141414;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 1rem 2rem;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--text-primary) !important;
+}
+
+.brand-icon {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.navbar-nav {
+    gap: 1rem;
+}
+
+.nav-item {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+}
+
+.nav-link {
+    color: var(--text-primary) !important;
+    padding: 0.5rem 1rem !important;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.nav-link i {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.nav-link span {
+    color: var(--text-primary);
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--primary-color) !important;
+}
+
+.nav-link:hover i,
+.nav-link:hover span {
+    color: var(--primary-color);
+}
+
+.nav-link.active {
+    background-color: rgba(108, 99, 255, 0.1);
+    color: var(--primary-color) !important;
+}
+
+.nav-link.active i,
+.nav-link.active span {
+    color: var(--primary-color);
+}
+
+.custom-toggler {
+    border: none;
+    color: white;
+    padding: 0.5rem;
+}
+
+.custom-toggler:focus {
+    box-shadow: none;
+}
+
+.main-content {
+    padding: 2rem;
+    background-color: var(--background-dark);
+    min-height: calc(100vh - var(--navbar-height));
+}
+
+.nav-user-section {
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    margin-left: 1rem;
+    padding-left: 1rem;
+}
+
+.user-menu {
+    color: var(--text-primary) !important;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+.user-menu i {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+}
+
+.dropdown-menu {
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    min-width: 200px;
+    border-radius: 8px;
+}
+
+.dropdown-item {
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dropdown-item i {
+    color: var(--text-primary);
+}
+
+.dropdown-item:hover {
+    background: rgba(108, 99, 255, 0.1);
+    color: var(--primary-color);
+}
+
+.dropdown-item:hover i {
+    color: var(--primary-color);
+}
+
+.dropdown-divider {
+    border-color: var(--border-color);
+    margin: 0.5rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        background: var(--background-light);
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+    
+    .navbar-nav {
+        margin: 1rem 0;
+    }
+    
+    .nav-link {
+        padding: 0.75rem !important;
+        border-radius: 8px;
+    }
+    
+    .nav-link:hover {
+        background: rgba(108, 99, 255, 0.1);
+    }
+    
+    .nav-user-section {
+        margin: 0;
+        border: none;
+        padding: 0;
+        border-top: 1px solid var(--border-color);
+        padding-top: 1rem;
+    }
+    
+    .user-menu {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        padding: 1rem;
+    }
+    
+    .navbar-brand span {
+        display: none;
+    }
 }
 
 .container {
@@ -105,6 +291,7 @@ body {
 .btn-primary {
     background: var(--primary-color);
     color: white;
+    font-size: 0.8rem;
     width: 100%;
 }
 
@@ -161,10 +348,6 @@ body {
     top: 0;
     height: 100%;
     overflow-y: auto;
-}
-
-.main-content {
-    padding: 2rem;
 }
 
 .card {

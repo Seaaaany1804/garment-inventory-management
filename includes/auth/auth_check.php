@@ -20,12 +20,6 @@ function checkAuth($required_role = null) {
         exit();
     }
 
-    // Redirect staff to inventory page
-    if ($_SESSION['role'] === 'staff') {
-        header("Location: ../../pages/staff/manageinventory.php");
-        exit();
-    }
-
     return $_SESSION['role'];
 }
 

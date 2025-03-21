@@ -61,9 +61,14 @@ include '../../layouts/header.php';
     
     <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
         <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0; color: #e2e8f0;">Order Management - Order #<?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></h1>
-        <a href="orders.php" class="btn" style="padding: 8px 16px; background-color: #374151; color: #e2e8f0; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-            <i class="fas fa-arrow-left"></i> Back to Orders
-        </a>
+        <div style="display: flex; gap: 10px;">
+            <button id="viewReceiptBtn" class="btn" style="padding: 8px 16px; background-color: #4F46E5; color: #e2e8f0; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-receipt"></i> View Receipt
+            </button>
+            <a href="orders.php" class="btn" style="padding: 8px 16px; background-color: #374151; color: #e2e8f0; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-arrow-left"></i> Back to Orders
+            </a>
+        </div>
     </div>
     
     <div class="card" style="border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); overflow: hidden; margin-bottom: 20px; padding: 20px;">
@@ -157,6 +162,146 @@ include '../../layouts/header.php';
             </table>
         </div>
     </div>
+    
+    <!-- Receipt Modal -->
+    <div id="receiptModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.5);">
+        <div class="modal-content" style="background-color: #1E293B; margin: 5% auto; padding: 0; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #374151;">
+                <h3 style="margin: 0; font-size: 1.25rem; color: #e2e8f0;">Order Receipt</h3>
+                <div>
+                    <button onclick="closeReceiptModal()" style="background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1.25rem;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="receiptContent" style="padding: 20px; color: #e2e8f0; font-family: 'Courier New', monospace; background-color: white;">
+                <div style="text-align: center; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
+                    <h2 style="margin: 0; font-size: 1.2rem; font-weight: bold; color: #000;">Triple S Garments</h2>
+                    <p style="margin: 5px 0; font-size: 0.9rem; color: #333;">123 Fashion Street, Style City</p>
+                    <p style="margin: 5px 0; font-size: 0.9rem; color: #333;">Tel: (123) 456-7890</p>
+                </div>
+                
+                <div style="margin: 15px 0; text-align: center;">
+                    <p style="margin: 5px 0; font-size: 1rem; font-weight: bold; color: #000;">SALES RECEIPT</p>
+                    <p style="margin: 5px 0; font-size: 0.9rem; color: #333;">Order #: <?php echo str_pad($order['id'], 3, '0', STR_PAD_LEFT); ?></p>
+                    <p style="margin: 5px 0; font-size: 0.9rem; color: #333;">Date: <?php echo date('m/d/Y h:i A', strtotime($order['created_at'])); ?></p>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <p style="margin: 5px 0; font-size: 0.9rem; font-weight: bold; color: #000;">Customer: <?php echo htmlspecialchars($order['customer_name']); ?></p>
+                    <?php if(!empty($order['customer_phone'])): ?>
+                    <p style="margin: 5px 0; font-size: 0.9rem; color: #333;">Phone: <?php echo htmlspecialchars($order['customer_phone']); ?></p>
+                    <?php endif; ?>
+                    <?php if(!empty($order['customer_address'])): ?>
+                    <p style="margin: 5px 0; font-size: 0.9rem; color: #333;">Address: <?php echo htmlspecialchars($order['customer_address']); ?></p>
+                    <?php endif; ?>
+                </div>
+                
+                <div style="border-top: 1px dashed #ccc; border-bottom: 1px dashed #ccc; padding: 10px 0;">
+                    <table style="width: 100%; font-size: 0.9rem; color: #333;">
+                        <thead>
+                            <tr style="text-align: left;">
+                                <th style="padding: 5px 0;">Item</th>
+                                <th style="padding: 5px 0; text-align: center;">Qty</th>
+                                <th style="padding: 5px 0; text-align: right;">Price</th>
+                                <th style="padding: 5px 0; text-align: right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($orderItems as $item): ?>
+                            <tr>
+                                <td style="padding: 5px 0;"><?php echo htmlspecialchars($item['product_name']); ?></td>
+                                <td style="padding: 5px 0; text-align: center;"><?php echo $item['quantity']; ?></td>
+                                <td style="padding: 5px 0; text-align: right;">₱<?php echo number_format($item['unit_price'], 2); ?></td>
+                                <td style="padding: 5px 0; text-align: right;">₱<?php echo number_format($item['total_price'], 2); ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <table style="width: 100%; font-size: 0.9rem; color: #333;">
+                        <tr>
+                            <td style="text-align: right; padding: 5px 0; font-weight: bold;">Subtotal:</td>
+                            <td style="text-align: right; padding: 5px 0;">₱<?php echo number_format($order['total_amount'], 2); ?></td>
+                        </tr>
+                        <tr style="font-weight: bold; font-size: 1rem;">
+                            <td style="text-align: right; padding: 5px 0; border-top: 1px dashed #ccc;">TOTAL:</td>
+                            <td style="text-align: right; padding: 5px 0; border-top: 1px dashed #ccc;">₱<?php echo number_format($order['total_amount'], 2); ?></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="margin: 20px 0; text-align: center; padding-top: 15px; border-top: 1px dashed #ccc;">
+                    <p style="margin: 5px 0; font-size: 0.9rem; font-weight: bold; text-transform: uppercase; color: #000;"><?php echo $order['status']; ?></p>
+                    <p style="margin: 15px 0; font-size: 0.9rem; color: #333;">Thank you for your purchase!</p>
+                    <p style="margin: 5px 0; font-size: 0.8rem; color: #666;">Keep this receipt for your records</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    // Open the receipt modal when the button is clicked
+    document.getElementById('viewReceiptBtn').addEventListener('click', function() {
+        document.getElementById('receiptModal').style.display = 'block';
+    });
+    
+    // Close the receipt modal
+    function closeReceiptModal() {
+        document.getElementById('receiptModal').style.display = 'none';
+    }
+    
+    // Close modal when clicking outside the modal content
+    window.onclick = function(event) {
+        const modal = document.getElementById('receiptModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+    
+    // Print receipt functionality
+    document.getElementById('printReceiptBtn').addEventListener('click', function() {
+        const printContent = document.getElementById('receiptContent').innerHTML;
+        const originalContent = document.body.innerHTML;
+        
+        document.body.innerHTML = `
+            <style>
+                body { font-family: 'Courier New', monospace; color: #000; background: #fff; }
+                @media print {
+                    @page { margin: 0.5cm; }
+                    body { width: 80mm; margin: 0 auto; }
+                }
+            </style>
+            <div style="width: 100%; max-width: 80mm; margin: 0 auto;">
+                ${printContent}
+            </div>
+        `;
+        
+        window.print();
+        
+        // Restore the original content
+        document.body.innerHTML = originalContent;
+        
+        // Reinitialize the event listeners
+        document.getElementById('viewReceiptBtn').addEventListener('click', function() {
+            document.getElementById('receiptModal').style.display = 'block';
+        });
+        
+        document.getElementById('printReceiptBtn').addEventListener('click', function() {
+            // This will be overwritten but needs to be defined to avoid errors
+            console.log('Print button clicked');
+        });
+        
+        // Use setTimeout to ensure the DOM is updated
+        setTimeout(function() {
+            if (document.getElementById('printReceiptBtn')) {
+                document.getElementById('printReceiptBtn').addEventListener('click', arguments.callee.caller);
+            }
+        }, 1000);
+    });
+    </script>
     
     <?php
     include '../../layouts/footer.php';
@@ -484,6 +629,12 @@ include '../../layouts/header.php';
     .status-tabs::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.2);
         border-radius: 2px;
+    }
+
+    /* Modal Animation */
+    @keyframes modalFadeIn {
+        from {opacity: 0; transform: translateY(-50px);}
+        to {opacity: 1; transform: translateY(0);}
     }
 </style>
 

@@ -311,6 +311,8 @@ include '../../layouts/header.php';
 // Filter settings
 $statusFilter = isset($_GET['status']) ? $_GET['status'] : 'all';
 $searchTerm = isset($_GET['search_term']) ? $_GET['search_term'] : '';
+$startDate = isset($_GET['start_date']) ? $_GET['start_date'] : '';
+$endDate = isset($_GET['end_date']) ? $_GET['end_date'] : '';
 
 // Fetch orders with customer details and item count
 $baseQuery = "
@@ -343,6 +345,16 @@ if (!empty($searchTerm)) {
     $params = [$searchParam, $searchParam, $searchParam, $searchParam];
 }
 
+// Add date range filter if dates are provided
+if (!empty($startDate)) {
+    $baseQuery .= " AND DATE(o.created_at) >= ?";
+    $params[] = $startDate;
+}
+if (!empty($endDate)) {
+    $baseQuery .= " AND DATE(o.created_at) <= ?";
+    $params[] = $endDate;
+}
+
 // Add status filter if not 'all'
 if ($statusFilter !== 'all') {
     $baseQuery .= " AND o.status = ?";
@@ -371,19 +383,67 @@ include '../../layouts/header.php';
 <div style="margin-bottom: 20px; display: flex; margin-top: 10px; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
     <h1 style="font-size: 1.8rem; font-weight: 600; margin: 0; color: #e2e8f0;">Order Management</h1>
     
-    <div style="display: flex; gap: 1rem;  align-items: center;">
-        <form method="GET" action="" class="search-form">
-            <!-- Preserve current status filter when searching -->
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <!-- Date Filter Form -->
+        <form method="GET" action="" class="date-filter-form" style="display: flex; gap: 0.5rem; align-items: center;">
+            <!-- Preserve other filters -->
             <?php if ($statusFilter !== 'all'): ?>
             <input type="hidden" name="status" value="<?php echo htmlspecialchars($statusFilter); ?>">
+            <?php endif; ?>
+            <?php if (!empty($searchTerm)): ?>
+            <input type="hidden" name="search_term" value="<?php echo htmlspecialchars($searchTerm); ?>">
+            <?php endif; ?>
+            
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <input 
+                    type="date" 
+                    name="start_date" 
+                    value="<?php echo htmlspecialchars($startDate); ?>"
+                    style="padding: 8px; border-radius: 8px; border: 1px solid #4b5563; background-color: #1f2937; color: #e2e8f0;"
+                >
+                <span style="color: #9ca3af;">to</span>
+                <input 
+                    type="date" 
+                    name="end_date" 
+                    value="<?php echo htmlspecialchars($endDate); ?>"
+                    style="padding: 8px; border-radius: 8px; border: 1px solid #4b5563; background-color: #1f2937; color: #e2e8f0;"
+                >
+                <button type="submit" style="padding: 8px 16px; background-color: #4F46E5; color: #e2e8f0; border: none; border-radius: 6px; cursor: pointer;">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+                <?php if (!empty($startDate) || !empty($endDate)): ?>
+                <a href="?<?php 
+                    $params = [];
+                    if ($statusFilter !== 'all') $params[] = 'status=' . urlencode($statusFilter);
+                    if (!empty($searchTerm)) $params[] = 'search_term=' . urlencode($searchTerm);
+                    echo implode('&', $params);
+                ?>" style="padding: 8px 16px; background-color: #374151; color: #e2e8f0; border-radius: 6px; text-decoration: none;">
+                    <i class="fas fa-times"></i> Clear Dates
+                </a>
+                <?php endif; ?>
+            </div>
+        </form>
+
+        <form method="GET" action="" class="search-form">
+            <!-- Preserve current filters when searching -->
+            <?php if ($statusFilter !== 'all'): ?>
+            <input type="hidden" name="status" value="<?php echo htmlspecialchars($statusFilter); ?>">
+            <?php endif; ?>
+            <?php if (!empty($startDate)): ?>
+            <input type="hidden" name="start_date" value="<?php echo htmlspecialchars($startDate); ?>">
+            <?php endif; ?>
+            <?php if (!empty($endDate)): ?>
+            <input type="hidden" name="end_date" value="<?php echo htmlspecialchars($endDate); ?>">
             <?php endif; ?>
             
             <div class="search-container" style="position: relative;">
                 <input type="text" name="search_term" value="<?php echo htmlspecialchars($searchTerm); ?>" placeholder="Search orders..." style="padding: 8px 12px 8px 36px; border-radius: 8px; border: 1px solid #4b5563; background-color: #1f2937; color: #e2e8f0; min-width: 250px;">
                 <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
-                <button type="submit" style="position: absolute; right: 0; top: 0; height: 100%; background: none; border: none; padding: 0 10px; color: #6366F1; font-size: 0.875rem; display: <?php echo !empty($searchTerm) ? 'block' : 'none'; ?>;">
+                <?php if (!empty($searchTerm)): ?>
+                <button type="submit" style="position: absolute; right: 0; top: 0; height: 100%; background: none; border: none; padding: 0 10px; color: #6366F1; font-size: 0.875rem;">
                     <i class="fas fa-times"></i>
                 </button>
+                <?php endif; ?>
             </div>
         </form>
     </div>
@@ -552,13 +612,31 @@ include '../../layouts/header.php';
     </div>
 </div>
 
-<!-- Display search and filter information if searching -->
-<?php if (!empty($searchTerm)): ?>
+<!-- Display search, filter, and date range information if any filters are active -->
+<?php if (!empty($searchTerm) || !empty($startDate) || !empty($endDate)): ?>
 <div style="margin-top: 15px; color: #9ca3af; font-size: 0.875rem;">
-    <?php $resultText = count($orders) > 0 ? 'Found ' . count($orders) . ' result' . (count($orders) > 1 ? 's' : '') : 'No results found'; ?>
-    <?php echo $resultText; ?> for "<span style="color: #e2e8f0;"><?php echo htmlspecialchars($searchTerm); ?></span>"
+    <?php 
+    $filterParts = [];
+    if (!empty($searchTerm)) {
+        $filterParts[] = 'search term "<span style="color: #e2e8f0;">' . htmlspecialchars($searchTerm) . '</span>"';
+    }
+    if (!empty($startDate) || !empty($endDate)) {
+        $datePart = 'date range ';
+        if (!empty($startDate) && !empty($endDate)) {
+            $datePart .= '<span style="color: #e2e8f0;">' . htmlspecialchars($startDate) . '</span> to <span style="color: #e2e8f0;">' . htmlspecialchars($endDate) . '</span>';
+        } else if (!empty($startDate)) {
+            $datePart .= 'from <span style="color: #e2e8f0;">' . htmlspecialchars($startDate) . '</span>';
+        } else {
+            $datePart .= 'until <span style="color: #e2e8f0;">' . htmlspecialchars($endDate) . '</span>';
+        }
+        $filterParts[] = $datePart;
+    }
+    
+    $resultText = count($orders) > 0 ? 'Found ' . count($orders) . ' result' . (count($orders) > 1 ? 's' : '') : 'No results found';
+    echo $resultText . ' for ' . implode(' and ', $filterParts);
+    ?>
     <a href="?<?php echo $statusFilter !== 'all' ? 'status=' . htmlspecialchars($statusFilter) : ''; ?>" style="color: #6366F1; margin-left: 10px; text-decoration: none;">
-        <i class="fas fa-times"></i> Clear search
+        <i class="fas fa-times"></i> Clear all filters
     </a>
 </div>
 <?php endif; ?>
@@ -635,6 +713,30 @@ include '../../layouts/header.php';
     @keyframes modalFadeIn {
         from {opacity: 0; transform: translateY(-50px);}
         to {opacity: 1; transform: translateY(0);}
+    }
+
+    /* Add these styles to your existing CSS */
+    @media (max-width: 768px) {
+        .date-filter-form {
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
+        }
+        
+        .date-filter-form input[type="date"] {
+            width: 100%;
+        }
+        
+        .date-filter-form button {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+    }
+    
+    /* Style the date inputs */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
     }
 </style>
 

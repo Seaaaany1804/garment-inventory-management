@@ -271,7 +271,7 @@ if (isset($_GET['id'])) {
 $totalOrders = $conn->query("SELECT COUNT(*) FROM orders")->fetchColumn();
 $pendingOrders = $conn->query("SELECT COUNT(*) FROM orders WHERE status = 'pending'")->fetchColumn();
 $shippedOrders = $conn->query("SELECT COUNT(*) FROM orders WHERE status = 'shipped'")->fetchColumn();
-$deliveredOrders = $conn->query("SELECT COUNT(*) FROM orders WHERE status = 'delivered' AND DATE(created_at) = CURDATE()")->fetchColumn();
+$deliveredOrders = $conn->query("SELECT COUNT(*) FROM orders WHERE status = 'delivered'")->fetchColumn();
 
 // Process order status update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_status') {

@@ -13,23 +13,23 @@ $pageTitle = "Overall Reports";
 $timeRange = isset($_GET['time_range']) ? $_GET['time_range'] : 'this_month';
 
 // Calculate date ranges based on selected time range
-$endDate = date('Y-m-d');
+$endDate = date('Y-m-d 23:59:59');
 switch ($timeRange) {
     case 'this_month':
-        $startDate = date('Y-m-01');
+        $startDate = date('Y-m-01 00:00:00');
         break;
     case 'last_month':
-        $startDate = date('Y-m-01', strtotime('-1 month'));
-        $endDate = date('Y-m-t', strtotime('-1 month'));
+        $startDate = date('Y-m-01 00:00:00', strtotime('-1 month'));
+        $endDate = date('Y-m-t 23:59:59', strtotime('-1 month'));
         break;
     case 'last_3_months':
-        $startDate = date('Y-m-01', strtotime('-3 months'));
+        $startDate = date('Y-m-01 00:00:00', strtotime('-3 months'));
         break;
     case 'this_year':
-        $startDate = date('Y-01-01');
+        $startDate = date('Y-01-01 00:00:00');
         break;
     default:
-        $startDate = date('Y-m-01');
+        $startDate = date('Y-m-01 00:00:00');
 }
 
 try {
@@ -46,7 +46,7 @@ try {
         COUNT(DISTINCT o.id) as total_orders,
         COALESCE(SUM(oi.quantity), 0) as total_items_shipped
         FROM orders o
-        JOIN order_items oi ON o.id = oi.order_id
+        LEFT JOIN order_items oi ON o.id = oi.order_id
         WHERE o.status = 'shipped'
         AND o.created_at BETWEEN ? AND ?");
     $stmt->execute([$startDate, $endDate]);
@@ -57,7 +57,7 @@ try {
         COUNT(DISTINCT o.id) as total_orders,
         COALESCE(SUM(oi.quantity), 0) as total_items_delivered
         FROM orders o
-        JOIN order_items oi ON o.id = oi.order_id
+        LEFT JOIN order_items oi ON o.id = oi.order_id
         WHERE o.status = 'delivered'
         AND o.created_at BETWEEN ? AND ?");
     $stmt->execute([$startDate, $endDate]);
@@ -65,10 +65,10 @@ try {
 
     // Get total revenue
     $stmt = $conn->prepare("SELECT 
-        COALESCE(SUM(total_amount), 0) as total_revenue
-        FROM orders
-        WHERE status IN ('shipped', 'delivered')
-        AND created_at BETWEEN ? AND ?");
+        COALESCE(SUM(o.total_amount), 0) as total_revenue
+        FROM orders o
+        WHERE o.status IN ('shipped', 'delivered')
+        AND o.created_at BETWEEN ? AND ?");
     $stmt->execute([$startDate, $endDate]);
     $revenueStats = $stmt->fetch();
 
